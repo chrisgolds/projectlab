@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ProjectLab - Next task!</title>
+</head>
+<body style="font-family: 'Helvetica';">
+	<h1>ProjectLab</h1>
+	<p>Next task!</p>
+	<hr>
+	{% if completedSignUp %}
+	<p style="color: green;"><strong>{{completedSignUp}}</strong></p>
+	{% endif %}
+	<form action="{% url 'projectlab:verify_login' %}" method="post">
+		{% csrf_token %}
+		<label>Welcome back. Sign into ProjectLab</label><br>
+		<input type="text" name="username" placeholder="Username"><br>
+		<input type="password" name="password" placeholder="Password"><br>
+		<input type="submit" value="Login">
+	</form>
+	<hr>
+	<form action="{% url 'projectlab:verify_sign_up' %}" method="post">
+		{% csrf_token %}
+		<input type="text" name="firstName" placeholder="First Name"><br>
+		<input type="text" name="lastName" placeholder="Surname"><br>
+		<input type="text" name="username" placeholder="Username"><br>
+		{% if username_exists %}
+		<p style="color: red;"><strong>The username you have provided is already in use. Please choose another username.</strong></p>
+		{% endif %}
+		<input type="password" name="password" placeholder="Password"><br>
+		<input type="password" name="confirmPassword" placeholder="Confirm Password"><br>
+		{% if passwords_do_not_match %}
+		<p style="color: red;"><strong>The passwords you entered do not match.</strong></p>
+		{% endif %}
+		<input type="text" name="university" placeholder="University"><br>
+		<input type="submit" value="Sign up"><br>
+	</form>
+</body>
+</html>

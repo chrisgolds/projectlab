@@ -17,6 +17,6 @@ class Workspace(models.Model):
 	last_workplace_id = models.IntegerField()
 
 class Project(models.Model):
-	members = models.ManyToMany(Member)
+	members = models.ManyToManyField(Member)
 	name = models.CharField(max_length=200)
 	deadline = models.DateField()
