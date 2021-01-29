@@ -3,8 +3,6 @@ from django.contrib.auth.models import User
 
 class Member(models.Model):
 	usr = models.OneToOneField(User, on_delete=models.CASCADE)
-	firstName = models.CharField(max_length=200)
-	lastName = models.CharField(max_length=200)
 	dob = models.DateField()
 	university = models.CharField(max_length=200)
 

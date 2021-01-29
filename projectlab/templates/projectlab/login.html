@@ -4,39 +4,197 @@
 	<title>ProjectLab - Next task!</title>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" />
+
 </head>
 <body>
-	<h1>ProjectLab</h1>
-	<p>Next task!</p>
-	<hr>
-	<form action="{% url 'projectlab:verify_login' %}" method="post">
-		{% csrf_token %}
-		<label>Welcome back. Sign into ProjectLab</label><br>
-		<input type="text" name="username" placeholder="Username"><br>
-		<input type="password" name="password" placeholder="Password"><br>
-		<input type="submit" value="Login">
-	</form>
-	<hr>
-	<form action="{% url 'projectlab:verify_sign_up' %}" method="post">
-		{% csrf_token %}
-		<input type="text" name="firstName" placeholder="First Name"><br>
-		<input type="text" name="lastName" placeholder="Surname"><br>
-		<input type="text" name="username" placeholder="Username"><br>
-		{% if username_exists %}
-		<p style="color: red;"><strong>The username you have provided is already in use. Please choose another username.</strong></p>
-		{% endif %}
-		<input type="password" name="password" placeholder="Password"><br>
-		<input type="password" name="confirmPassword" placeholder="Confirm Password"><br>
-		{% if passwords_do_not_match %}
-		<p style="color: red;"><strong>The passwords you entered do not match.</strong></p>
-		{% endif %}
-		<input type="text" name="university" placeholder="University"><br>
-		<input type="submit" value="Sign up"><br>
-	</form>
-	{% if completedSignUp %}
-	<p style="color: green;"><strong>{{completedSignUp}}</strong></p>
-	{% endif %}
+	<div class="container">
+		<div class="row" style="margin-top: 80px;">
+			<div class="col-md-2"></div>
+			<div class="col-md-4">
+				<table>
+					<tr>
+						<td class="align-middle">
+							<h1>ProjectLab</h1>
+						</td>
+					</tr>
+					<tr>
+						<td class="align-middle">
+							<p>Next task!</p>
+						</td>
+					</tr>
+					<tr>
+						<td class="align-middle">
+							<form action="{% url 'projectlab:verify_login' %}" method="post">
+								{% csrf_token %}
+								<label>Welcome back. Sign into ProjectLab</label><br>
+								<div class="form-group">
+									<input type="text" name="username" class="form-control" placeholder="Username">
+								</div>
+								<div class="form-group">
+									<input type="password" name="password" class="form-control" placeholder="Password">
+								</div>
+								<input type="submit" class="btn btn-success" value="Login">
+							</form>
+							<br>
+							{% if error_with_sign_in %}
+							<p style="color: red;"><strong>Login failed. The username or password you provided may not have matched</strong></p>
+							{% endif %}
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div class="col-md-4">
+				<table>
+					<tr>
+						<td class="align-middle">
+							<p>Create new account</p>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<form id="signup_form" method="post">
+								{% csrf_token %}
+								<div class="form-group">
+									<input type="text" name="firstName" class="form-control" placeholder="First Name">
+								</div>
+								<div class="form-group">
+									<input type="text" name="lastName" class="form-control" placeholder="Surname">
+								</div>
+								<div class="form-group">
+				                    <input id="datepicker" name="dob" type="text" class="form-control" placeholder="Date of Birth" readonly />
+				                </div>
+				                <div class="form-group">
+				                    <input name="email" type="text" class="form-control" placeholder="Email" />
+				                </div>
+								<div class="form-group">
+									<input type="text" name="signup_username" class="form-control" placeholder="Username">
+								</div>
+								<p id="username_exists" style="color: red;"></p>
+								<div class="form-group">
+									<input type="password" name="signup_password" class="form-control" placeholder="Password">
+								</div>
+								<div class="form-group">
+									<input type="password" name="confirm_password" class="form-control" placeholder="Confirm Password">
+								</div>
+								<p id="passwords_do_not_match" style="color: red; display: none;"><strong>The passwords you entered do not match.</strong></p>
+								<div class="form-group">
+									<select name="university" class="form-control">
+										<option disabled selected> -- Select university -- </option>
+										{% for uni in unis %}
+										<option>{{ uni }}</option>
+										{% endfor %}
+									</select>
+								</div>
+								<input type="submit" class="btn btn-danger" value="Sign up"><br>
+							</form>
+							<br>
+							<p id="success_msg" style="color: green;"></p>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
 </body>
+<script type="text/javascript">
+
+	function getCookie(name) {
+	    let cookieValue = null;
+	    if (document.cookie && document.cookie !== '') {
+	        const cookies = document.cookie.split(';');
+	        for (let i = 0; i < cookies.length; i++) {
+	            const cookie = cookies[i].trim();
+	            // Does this cookie string begin with the name we want?
+	            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+	                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+	                break;
+	            }
+	        }
+	    }
+	    return cookieValue;
+	}
+
+	const csrftoken = getCookie('csrftoken');
+
+	$("#datepicker").datepicker({format: 'dd/mm/yyyy'});
+	
+	document.getElementsByName('confirm_password')[0].addEventListener('input', function () {
+
+		if (this.value.length > 0) {
+
+			if (this.value != document.getElementsByName('signup_password')[0].value) {
+
+				document.getElementById('passwords_do_not_match').style.display = "";
+
+			} else {
+
+				document.getElementById('passwords_do_not_match').style.display = "none";
+
+			}			
+
+		} else {
+
+			document.getElementById('passwords_do_not_match').style.display = "none";
+
+		}
+
+	});
+
+	document.getElementById('signup_form').addEventListener('submit', function (event) {
+
+		event.preventDefault();
+
+		if (document.getElementsByName('firstName')[0].value != "" &&
+			document.getElementsByName('lastName')[0].value != "" &&
+			document.getElementsByName('dob')[0].value != "" &&
+			document.getElementsByName('email')[0].value != "" &&
+			/.+@\w+\.\w+/.test(document.getElementsByName('email')[0].value) &&
+			document.getElementsByName('signup_username')[0].value != "" &&
+			document.getElementsByName('signup_password')[0].value != "" &&
+			document.getElementsByName('confirm_password')[0].value != "" &&
+			(document.getElementsByName('signup_password')[0].value == document.getElementsByName('confirm_password')[0].value) &&
+			document.getElementsByName('university')[0].value != "-- Select university --") {
+
+			var data = new FormData();
+			data.append("firstName", document.getElementsByName('firstName')[0].value);
+			data.append("lastName", document.getElementsByName('lastName')[0].value);
+			data.append("dob", document.getElementsByName('dob')[0].value);
+			data.append("email", document.getElementsByName('email')[0].value);
+			data.append("signup_username", document.getElementsByName('signup_username')[0].value);
+			data.append("signup_password", document.getElementsByName('signup_password')[0].value);
+			data.append("university", document.getElementsByName('university')[0].value);
+
+			var req = new XMLHttpRequest();
+			req.open("POST", "{% url 'projectlab:verify_sign_up' %}")
+			req.setRequestHeader('X-CSRFToken', csrftoken);
+			req.onreadystatechange = function () {
+
+				if (this.readyState == 4 && this.status == 200) {
+
+					document.getElementById('success_msg').innerHTML = this.responseText;
+					document.getElementsByName('username')[0].value = document.getElementsByName('signup_username')[0].value
+
+				} else if (this.readyState == 4 && this.status == 500) {
+
+					document.getElementById('username_exists').innerHTML = this.responseText;
+
+				}
+
+			};
+			req.send(data);
+
+		} else {
+
+			alert("Error signing up - Please complete all fields, and ensure a valid email address is provided and that passwords match accordingly.")
+
+		}
+
+	});
+
+</script>
 </html>

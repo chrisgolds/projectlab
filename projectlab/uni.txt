@@ -1,0 +1,165 @@
+10007849	0095	Abertay University	Scotland	HEI
+10007856	0177	Aberystwyth University	Wales	HEI
+10000163	0213	AECC University College	South West	HEI
+10000291	0047	Anglia Ruskin University	East of England	HEI
+10007759	0108	Aston University	West Midlands	HEI
+10007857	0178	Bangor University	Wales	HEI
+10000571	0048	Bath Spa University	South West	HEI
+10007760	0127	Birkbeck College	London	HEI
+10007140	0052	Birmingham City University	West Midlands	HEI
+10007811	0007	Bishop Grosseteste University	East Midlands	HEI
+10000824	0050	Bournemouth University	South West	HEI
+10000961	0113	Brunel University London	London	HEI
+10000975	0009	Buckinghamshire New University	South East	HEI
+10001143	0012	Canterbury Christ Church University	South East	HEI
+10007854	0089	Cardiff Metropolitan University	Wales	HEI
+10007814	0179	Cardiff University	Wales	HEI
+10001478	0115	City, University of London	London	HEI
+10001653	0199	Conservatoire for Dance and Drama	London	HEI
+10007761	0201	Courtauld Institute of Art	London	HEI
+10001726	0056	Coventry University	West Midlands	HEI
+10007822	0002	Cranfield University	East of England	HEI
+10001883	0068	De Montfort University	East Midlands	HEI
+10007823	0016	Edge Hill University	North West	HEI
+10007772	0107	Edinburgh Napier University	Scotland	HEI
+10008640	0017	Falmouth University	South West	HEI
+10007762	0106	Glasgow Caledonian University	Scotland	HEI
+10002681	0097	Glasgow School of Art	Scotland	HEI
+10007833	0087	Glyndŵr University	Wales	HEI
+10002718	0131	Goldsmiths College	London	HEI
+10007825	0208	Guildhall School of Music and Drama	London	HEI
+10040812	0018	Harper Adams University	West Midlands	HEI
+10080811	0352	Hartpury University	South West	HEI
+10007764	0171	Heriot-Watt University	Scotland	HEI
+10003270	0132	Imperial College of Science, Technology and Medicine	London	HEI
+10007767	0121	Keele University	West Midlands	HEI
+10003645	0134	King's College London	London	HEI
+10003678	0063	Kingston University	London	HEI
+10003854	0211	Leeds Arts University	Yorkshire and The Humber	HEI
+10003861	0064	Leeds Beckett University	Yorkshire and The Humber	HEI
+10034449	0351	Leeds College of Music	Yorkshire and The Humber	HEI
+10003863	0040	Leeds Trinity University	Yorkshire and The Humber	HEI
+10003956	0023	Liverpool Hope University	North West	HEI
+10003957	0065	Liverpool John Moores University	North West	HEI
+10003958	0228	Liverpool School of Tropical Medicine	North West	HEI
+10007769	0135	London Business School	London	HEI
+10004048	0202	London Metropolitan University	London	HEI
+10004063	0137	London School of Economics and Political Science	London	HEI
+10007771	0138	London School of Hygiene and Tropical Medicine	London	HEI
+10004078	0076	London South Bank University	London	HEI
+10004113	0152	Loughborough University	East Midlands	HEI
+10004351	0067	Middlesex University	London	HEI
+10007799	0154	Newcastle University	North East	HEI
+10007832	0028	Newman University	West Midlands	HEI
+10004775	0190	Norwich University of the Arts	East of England	HEI
+10004930	0072	Oxford Brookes University	South East	HEI
+10005127	0230	Plymouth College of Art	South West	HEI
+10005337	0100	Queen Margaret University, Edinburgh	Scotland	HEI
+10007775	0139	Queen Mary University of London	London	HEI
+10005343	0184	Queen's University Belfast	Northern Ireland	HEI
+10005389	0030	Ravensbourne University London	London	HEI
+10007776	0031	Roehampton University	London	HEI
+10005523	0032	Rose Bruford College of Theatre and Performance	London	HEI
+10007835	0033	Royal Academy of Music	London	HEI
+10005545	0195	Royal Agricultural University	South West	HEI
+10007777	0003	Royal College of Art	London	HEI
+10007778	0034	Royal College of Music	London	HEI
+10005561	0101	Royal Conservatoire of Scotland	Scotland	HEI
+10005553	0141	Royal Holloway and Bedford New College	South East	HEI
+10007837	0035	Royal Northern College of Music	North West	HEI
+10005790	0075	Sheffield Hallam University	Yorkshire and The Humber	HEI
+10007780	0146	SOAS University of London	London	HEI
+10006022	0037	Solent University	South East	HEI
+10005700	0175	SRUC	Scotland	HEI
+10007782	0145	St George's, University of London	London	HEI
+10008026	0194	St Mary's University College	Northern Ireland	HEI
+10007843	0039	St Mary's University, Twickenham	London	HEI
+10006299	0077	Staffordshire University	West Midlands	HEI
+10008010	0193	Stranmillis University College	Northern Ireland	HEI
+10007855	0180	Swansea University	Wales	HEI
+10007161	0079	Teesside University	North East	HEI
+10000385	0197	The Arts University Bournemouth	South West	HEI
+10003324	0188	The Institute of Cancer Research	London	HEI
+10003945	0209	The Liverpool Institute for Performing Arts	North West	HEI
+10004180	0066	The Manchester Metropolitan University	North West	HEI
+10004511	0229	The National Film and Television School	South East	HEI
+10004797	0071	The Nottingham Trent University	East Midlands	HEI
+10007773	0001	The Open University	South East	HEI
+10005500	0104	The Robert Gordon University	Scotland	HEI
+10007816	0010	The Royal Central School of Speech and Drama	London	HEI
+10007779	0143	The Royal Veterinary College	London	HEI
+10000936	0337	The University College of Osteopathy	London	HEI
+10007783	0170	The University of Aberdeen	Scotland	HEI
+10007850	0109	The University of Bath	South West	HEI
+10006840	0110	The University of Birmingham	West Midlands	HEI
+10006841	0049	The University of Bolton	North West	HEI
+10007785	0111	The University of Bradford	Yorkshire and The Humber	HEI
+10000886	0051	The University of Brighton	South East	HEI
+10007786	0112	The University of Bristol	South West	HEI
+10007788	0114	The University of Cambridge	East of England	HEI
+10007141	0053	The University of Central Lancashire	North West	HEI
+10007137	0082	The University of Chichester	South East	HEI
+10007852	0172	The University of Dundee	Scotland	HEI
+10007789	0117	The University of East Anglia	East of England	HEI
+10007144	0058	The University of East London	London	HEI
+10007790	0167	The University of Edinburgh	Scotland	HEI
+10007791	0118	The University of Essex	East of England	HEI
+10007792	0119	The University of Exeter	South West	HEI
+10007794	0168	The University of Glasgow	Scotland	HEI
+10007146	0059	The University of Greenwich	London	HEI
+10007148	0061	The University of Huddersfield	Yorkshire and The Humber	HEI
+10007149	0120	The University of Hull	Yorkshire and The Humber	HEI
+10007150	0122	The University of Kent	South East	HEI
+10007768	0123	The University of Lancaster	North West	HEI
+10007795	0124	The University of Leeds	Yorkshire and The Humber	HEI
+10007796	0125	The University of Leicester	East Midlands	HEI
+10007151	0062	The University of Lincoln	East Midlands	HEI
+10006842	0126	The University of Liverpool	North West	HEI
+10007798	0204	The University of Manchester	North West	HEI
+10007138	0027	The University of Northampton	East Midlands	HEI
+10007774	0156	The University of Oxford	South East	HEI
+10007155	0074	The University of Portsmouth	South East	HEI
+10007802	0157	The University of Reading	South East	HEI
+10007156	0158	The University of Salford	North West	HEI
+10007157	0159	The University of Sheffield	Yorkshire and The Humber	HEI
+10007158	0160	The University of Southampton	South East	HEI
+10007803	0173	The University of St Andrews	Scotland	HEI
+10007804	0174	The University of Stirling	Scotland	HEI
+10007805	0169	The University of Strathclyde	Scotland	HEI
+10007159	0078	The University of Sunderland	North East	HEI
+10007160	0161	The University of Surrey	South East	HEI
+10007806	0162	The University of Sussex	South East	HEI
+10007800	0105	The University of the West of Scotland	Scotland	HEI
+10008574	0186	The University of Wales (central functions)	Wales	HEI
+10007163	0163	The University of Warwick	West Midlands	HEI
+10006566	0080	The University of West London	London	HEI
+10007165	0083	The University of Westminster	London	HEI
+10003614	0021	The University of Winchester	South East	HEI
+10007166	0085	The University of Wolverhampton	West Midlands	HEI
+10007167	0164	The University of York	Yorkshire and The Humber	HEI
+10008017	0041	Trinity Laban Conservatoire of Music and Dance	London	HEI
+10007807	0185	Ulster University	Northern Ireland	HEI
+10000712	0200	University College Birmingham	West Midlands	HEI
+10007784	0149	University College London	London	HEI
+10006427	0206	University for the Creative Arts	South East	HEI
+10007152	0026	University of Bedfordshire	East of England	HEI
+10007848	0011	University of Chester	North West	HEI
+10007842	0038	University of Cumbria	North West	HEI
+10007851	0057	University of Derby	East Midlands	HEI
+10007143	0116	University of Durham	North East	HEI
+10007145	0054	University of Gloucestershire	South West	HEI
+10007147	0060	University of Hertfordshire	East of England	HEI
+10007797	0151	University of London (Institutes and activities)	London	HEI
+10001282	0069	University of Northumbria at Newcastle	North East	HEI
+10007154	0155	University of Nottingham	East Midlands	HEI
+10007801	0073	University of Plymouth	South West	HEI
+10007793	0090	University of South Wales	Wales	HEI
+10037449	0014	University of St Mark and St John	South West	HEI
+10014001	0210	University of Suffolk	East of England	HEI
+10007162	0024	University of the Arts, London	London	HEI
+10007114	0196	University of the Highlands and Islands	Scotland	HEI
+10007164	0081	University of the West of England, Bristol	South West	HEI
+10007858	0176	University of Wales Trinity Saint David	Wales	HEI
+10007139	0046	University of Worcester	West Midlands	HEI
+10007657	0189	Writtle University College	East of England	HEI
+10007713	0013	York St John University	Yorkshire and The Humber	HEI
