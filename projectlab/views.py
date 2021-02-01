@@ -3,7 +3,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 import os
 import datetime
@@ -39,8 +41,13 @@ def verify_login(request):
 					'error_with_sign_in' : True,
 					'unis' : unis
 				})
-		args = str(account.id) + "_" + account.usr.username
-		return HttpResponseRedirect(reverse('projectlab:home', args=(args,)))
+		user = authenticate(username=account.usr.username, password=request.POST['password'])
+		if user is not None:
+			if user.is_active:
+				request.session.set_expiry(20)
+				auth_login(request, user)
+				args = str(account.id) + "_" + account.usr.username
+				return HttpResponseRedirect(reverse('projectlab:home', args=(args,)))
 
 
 def verify_sign_up(request):
@@ -64,6 +71,7 @@ def verify_sign_up(request):
 			return HttpResponseServerError("<strong>The username you have provided is already in use. Please try another name<strong>")
 
 
+@login_required
 def home(request, acc):
 	verify = acc.split('_')
 	user = Member.objects.get(id = int(verify[0]))
