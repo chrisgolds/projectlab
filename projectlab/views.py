@@ -44,10 +44,9 @@ def verify_login(request):
 		user = authenticate(username=account.usr.username, password=request.POST['password'])
 		if user is not None:
 			if user.is_active:
-				request.session.set_expiry(20)
+				request.session.set_expiry(0)
 				auth_login(request, user)
-				args = str(account.id) + "_" + account.usr.username
-				return HttpResponseRedirect(reverse('projectlab:home', args=(args,)))
+				return HttpResponseRedirect(reverse('projectlab:home', args=(account.usr.username,)))
 
 
 def verify_sign_up(request):
@@ -73,7 +72,5 @@ def verify_sign_up(request):
 
 @login_required
 def home(request, acc):
-	verify = acc.split('_')
-	user = Member.objects.get(id = int(verify[0]))
-	if user.usr.username == verify[1]:
-		return render(request, 'projectlab/home.html', {'user' : user})
+	user = Member.objects.get(usr = User.objects.get(username = acc))
+	return render(request, 'projectlab/home.html', {'user' : user})
