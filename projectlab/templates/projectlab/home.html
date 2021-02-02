@@ -12,8 +12,12 @@
 </head>
 <body>
 	<div class="container">
-		<h1>{{user.usr.first_name}}</h1>
-		<p>No projects</p>
+		<h1>Welcome back, {{user.usr.first_name}}</h1>
+		{% for project in projects %}
+		<h4>{{ project }}</h4>
+		{% empty %}
+		<p>No projects. Create new</p>
+		{% endfor %}
 	</div>
 </body>
 </html>

@@ -13,11 +13,14 @@ import datetime
 from .models import Member, Workspace, Project
 
 def login(request):
-	unis = []
-	file = open(os.path.join(os.path.dirname(__file__), 'uni.txt'))
-	for line in file:
-		unis.append(line.split("\t")[2])
-	return render(request, 'projectlab/login.html', {'unis' : unis})
+	if request.user.is_authenticated:
+		return HttpResponseRedirect(reverse('projectlab:home', args=(request.user.username,)))
+	else:
+		unis = []
+		file = open(os.path.join(os.path.dirname(__file__), 'uni.txt'))
+		for line in file:
+			unis.append(line.split("\t")[2])
+		return render(request, 'projectlab/login.html', {'unis' : unis})
 
 def verify_login(request):
 	try:
@@ -72,5 +75,7 @@ def verify_sign_up(request):
 
 @login_required
 def home(request, acc):
-	user = Member.objects.get(usr = User.objects.get(username = acc))
-	return render(request, 'projectlab/home.html', {'user' : user})
+	if acc == request.user.username:
+		user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+		return render(request, 'projectlab/home.html', {'user' : user,
+			'projects' : user.project_set.all()})
