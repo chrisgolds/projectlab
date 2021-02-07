@@ -7,6 +7,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 
+	<!-- Datepicker JS and CSS -->
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" />
 
@@ -69,12 +70,11 @@
 				                    <input id="datepicker" name="dob" type="text" class="form-control" placeholder="Date of Birth" readonly />
 				                </div>
 				                <div class="form-group">
-				                    <input name="email" type="text" class="form-control" placeholder="Email" />
+				                    <input name="email" type="text" class="form-control" placeholder="Email (ending in .ac.uk)" />
 				                </div>
 								<div class="form-group">
 									<input type="text" name="signup_username" class="form-control" placeholder="Username">
 								</div>
-								<p id="username_exists" style="color: red;"></p>
 								<div class="form-group">
 									<input type="password" name="signup_password" class="form-control" placeholder="Password">
 								</div>
@@ -82,17 +82,10 @@
 									<input type="password" name="confirm_password" class="form-control" placeholder="Confirm Password">
 								</div>
 								<p id="passwords_do_not_match" style="color: red; display: none;"><strong>The passwords you entered do not match.</strong></p>
-								<div class="form-group">
-									<select name="university" class="form-control">
-										<option disabled selected> -- Select university -- </option>
-										{% for uni in unis %}
-										<option>{{ uni }}</option>
-										{% endfor %}
-									</select>
-								</div>
 								<input type="submit" class="btn btn-danger" value="Sign up"><br>
 							</form>
 							<br>
+							<p id="username_email_error" style="color: red;"></p>
 							<p id="success_msg" style="color: green;"></p>
 						</td>
 					</tr>
@@ -157,8 +150,7 @@
 			document.getElementsByName('signup_username')[0].value != "" &&
 			document.getElementsByName('signup_password')[0].value != "" &&
 			document.getElementsByName('confirm_password')[0].value != "" &&
-			(document.getElementsByName('signup_password')[0].value == document.getElementsByName('confirm_password')[0].value) &&
-			document.getElementsByName('university')[0].value != "-- Select university --") {
+			(document.getElementsByName('signup_password')[0].value == document.getElementsByName('confirm_password')[0].value)) {
 
 			var data = new FormData();
 			data.append("firstName", document.getElementsByName('firstName')[0].value);
@@ -167,7 +159,6 @@
 			data.append("email", document.getElementsByName('email')[0].value);
 			data.append("signup_username", document.getElementsByName('signup_username')[0].value);
 			data.append("signup_password", document.getElementsByName('signup_password')[0].value);
-			data.append("university", document.getElementsByName('university')[0].value);
 
 			var req = new XMLHttpRequest();
 			req.open("POST", "{% url 'projectlab:verify_sign_up' %}")
@@ -181,7 +172,7 @@
 
 				} else if (this.readyState == 4 && this.status == 500) {
 
-					document.getElementById('username_exists').innerHTML = this.responseText;
+					document.getElementById('username_email_error').innerHTML = this.responseText;
 
 				}
 
