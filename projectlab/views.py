@@ -142,6 +142,7 @@ def init_project(request):
 		proj_users = request.POST['users_arr'].split(",")
 		new_proj = Project()
 		new_proj.name = request.POST['project_name']
+		new_proj.lead = request.POST['username']
 		new_proj.deadline = datetime.datetime.strptime(request.POST['deadline'], "%d/%m/%Y").strftime("%Y-%m-%d")
 		new_proj.save()
 

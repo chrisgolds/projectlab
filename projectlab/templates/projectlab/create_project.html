@@ -161,6 +161,7 @@
 					var data = new FormData();
 					data.append("project_name",document.getElementsByName('project_name')[0].value);
 					data.append("deadline", document.getElementsByName('deadline')[0].value);
+					data.append("username", "{{ user.usr.username }}");
 					var users_arr = [];
 					for (var i = 0; i < all_users.childElementCount; i++) {
 						users_arr.push(all_users.children[i].id);

@@ -9,6 +9,7 @@ class Member(models.Model):
 class Project(models.Model):
 	members = models.ManyToManyField(Member)
 	name = models.CharField(max_length=200)
+	lead = models.CharField(max_length=200)
 	deadline = models.DateField()
 
 class Workspace(models.Model):
