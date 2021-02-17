@@ -6,6 +6,7 @@
 	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
 
 	<!-- Datepicker JS and CSS -->
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
@@ -18,6 +19,7 @@
 				<h1>Create new project</h1>
 			<!-- <form action="{% url 'projectlab:verify_login' %}"> -->
 				<form id="create_proj_form" method="post">
+					{% csrf_token %}
 					<div class="form-group">
 						<input type="text" name="project_name" class="form-control" placeholder="Enter project name">
 					</div>
@@ -25,17 +27,23 @@
 		                <input id="datepicker" name="deadline" type="text" class="form-control" placeholder="Deadline" readonly />
 		            </div>
 		            <div class="form-group">
-						<input type="text" class="form-control" placeholder="Add users to project">
+						<input type="text" name="user_search" class="form-control" placeholder="Add users to project (search by username or email)">
 					</div>
+					<div class="form-group">
+						<button id="find_user" class="btn btn-primary">Search and Add</button>
+					</div>
+					<br>
+					<input type="submit" class="btn btn-success" value="Create">
 				</form>
 			</div>
 			<div class="col-md-6">
 				<h4>Project members</h4>
 				<hr>
 				<div id="user_list">
-					<div id="{{ user.username }}">
-						<span>{{ user.username }}</span>
-						<!-- <button class="btn btn-danger">Remove</button> -->
+					<div id="{{ user.usr.username }}">
+						<span>{{ user.usr.username }} (Me)</span>
+						<br>
+						<br>
 					</div>
 				</div>
 			</div>
@@ -43,6 +51,148 @@
 	</div>
 </body>
 <script type="text/javascript">
+
+	function getCookie(name) {
+	    let cookieValue = null;
+	    if (document.cookie && document.cookie !== '') {
+	        const cookies = document.cookie.split(';');
+	        for (let i = 0; i < cookies.length; i++) {
+	            const cookie = cookies[i].trim();
+	            // Does this cookie string begin with the name we want?
+	            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+	                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+	                break;
+	            }
+	        }
+	    }
+	    return cookieValue;
+	}
+
+	const csrftoken = getCookie('csrftoken');
+
 	$("#datepicker").datepicker({format: 'dd/mm/yyyy'});
+
+	function remove_user(user) {
+
+		document.getElementById('user_list').removeChild(document.getElementById(user));
+
+	}
+
+	document.getElementById('find_user').addEventListener('click', function (event) {
+
+		event.preventDefault();
+
+		var req = new XMLHttpRequest();
+		req.open("GET",
+			"{% url 'projectlab:search_user' %}?user_search=" + document.getElementsByName('user_search')[0].value,
+			true)
+		req.setRequestHeader('X-CSRFToken', csrftoken);
+		req.onreadystatechange = function () {
+
+			if (this.readyState == 4 && this.status == 200) {
+
+				res = JSON.parse(this.responseText);
+
+				if (res.status == 200) {
+
+					if (res.data.username == "{{ user.usr.username }}" && res.data.email == "{{ user.usr.email }}") {
+
+						alert("You cannot add yourself to a project again")
+
+					} else if (res.data.university == "") {
+
+						alert("This user has not assigned a university to their profile");
+
+					} else if (res.data.university != "{{ user.university }}") {
+
+						alert("You cannot add a user from a different university to a project");
+
+					} else if (document.getElementById(res.data.username)) {
+
+						alert("You have already added " + res.data.username + " to this project");
+
+					} else {
+
+						var el = document.createElement("DIV");
+						el.id = res.data.username;
+						el.innerHTML = "<button type=\"button\" onclick=remove_user(\"" + res.data.username + "\") class=\"btn btn-danger\"><i class=\"fas fa-minus-circle\"></i></button> <span>" + res.data.username + " - " + res.data.first_name + " " + res.data.last_name + "</span><br><br>";
+						document.getElementById('user_list').appendChild(el);
+
+					}
+
+				} else if (res.status ==  500) {
+
+					alert(res.message)
+
+				}
+
+			}
+
+		};
+		req.send();
+
+	});
+
+	document.getElementById('create_proj_form').addEventListener('submit', function (event) {
+
+		event.preventDefault();
+
+		if (document.getElementsByName('project_name')[0].value != "" &&
+			document.getElementsByName('deadline')[0].value != "") {
+
+			date_split = document.getElementsByName('deadline')[0].value.split("/");
+			if (new Date(parseInt(date_split[2]),
+				parseInt(date_split[1]) - 1,
+				parseInt(date_split[0]),0,0,0,0).getTime() < new Date().getTime()) {
+
+				alert("The deadline you've set cannot be in the past or today.");
+
+			} else {
+
+				var all_users = document.getElementById('user_list');
+
+				if (confirm("Confirm project details:\n" +
+					document.getElementsByName('project_name')[0].value +
+					"\nDue: " +
+					document.getElementsByName('deadline')[0].value +
+					"\n" + all_users.childElementCount +
+					" project member(s)")) {
+
+					var data = new FormData();
+					data.append("project_name",document.getElementsByName('project_name')[0].value);
+					data.append("deadline", document.getElementsByName('deadline')[0].value);
+					var users_arr = [];
+					for (var i = 0; i < all_users.childElementCount; i++) {
+						users_arr.push(all_users.children[i].id);
+					}
+					data.append("users_arr", users_arr);
+
+					var req = new XMLHttpRequest();
+					req.open("POST", "{% url 'projectlab:init_project' %}");
+					req.setRequestHeader('X-CSRFToken', csrftoken);
+					req.onreadystatechange = function () {
+
+						if (this.readyState == 4 && this.status == 200) {
+
+							window.location.replace(this.responseText);
+
+						}
+
+					};
+					req.send(data);
+
+				}
+
+			}
+
+
+		} else {
+
+			alert("Error creating project - Please enter a project name and specify a deadline.")
+
+		}
+
+	});
+
 </script>
 </html>

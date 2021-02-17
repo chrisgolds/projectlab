@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Welcome back, {{user.usr.first_name}}</title>
+	<title>Home - ProjectLab</title>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
 
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" />
@@ -16,12 +17,109 @@
 			<h1>Welcome back, {{user.usr.first_name}}</h1>
 		</div>
 		<div class="row">
-			{% for project in projects %}
-			<h4>{{ project }}</h4>
-			{% empty %}
-			<p>No projects. Create new</p>
-			{% endfor %}
+			<div class="col-md-12">
+				{% if not user.university and uni_names %}
+				<strong style="color: red;">Your university was not assigned automatically when signing up because it was not recognised by its domain. Please select your university from the dropdown below. You will not be able to participate in projects until you assign your university to your account.</strong>
+				<div class="form-group">
+					<select class="custom-select" id="unis">
+						{% for name in uni_names %}
+						<option value="{{name}}">{{name}}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<button id="add_uni" class="btn btn-primary">Assign uni</button>
+				{% else %}
+				<p>{{user.university}}</p>
+				{% endif %}
+			</div>
+		</div>
+		<br>
+		<hr>
+		<br>
+		<div class="row">
+			<div class="col-md-5">
+				{% if not user.university %}
+				<button id="create_new" class="btn btn-primary" disabled>New project</button>
+				{% else %}
+				<button id="create_new" class="btn btn-primary">New project</button>
+				{% endif %}
+				<br>
+				<br>
+				<br>
+				{% for project in user.project_set.all %}
+				<div onclick="alert('{{ project.name }}')">
+					<h2>{{ project.name }}</h2>
+					<p><i class="far fa-calendar-alt"></i> Due {{ project.deadline }}</p>
+					<p><i class="far fa-user"></i> {{ project.members.count }} member(s)</p>
+					<p><i class="far fa-edit"></i> {{ project.workspace_set.all.count }} workspace(s)</p>
+					{% if project.members.all.0.usr.username == user.usr.username %}
+					<strong><i class="fas fa-star"></i> You are the project lead</strong>
+					{% endif %}
+				</div>
+				<br>
+				<br>
+				{% empty %}
+				<h3>You have no projects.</h3>
+				{% endfor %}
+			</div>
 		</div>
 	</div>
 </body>
+<script type="text/javascript">
+	
+	function getCookie(name) {
+	    let cookieValue = null;
+	    if (document.cookie && document.cookie !== '') {
+	        const cookies = document.cookie.split(';');
+	        for (let i = 0; i < cookies.length; i++) {
+	            const cookie = cookies[i].trim();
+	            // Does this cookie string begin with the name we want?
+	            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+	                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+	                break;
+	            }
+	        }
+	    }
+	    return cookieValue;
+	}
+
+	const csrftoken = getCookie('csrftoken');
+
+	document.getElementById('create_new').addEventListener('click', function (event) {
+
+		window.location.href = "{% url 'projectlab:create_project' acc=user.usr.username %}";
+
+	});
+
+	document.getElementById('add_uni').addEventListener('click', function (event) {
+
+		if (confirm("Please confirm this is the university you wish to assign:\n" +
+			document.getElementById('unis').value +
+			"\nYou will not be able to change this selection in future.")) {
+
+			var data = "uni=" + document.getElementById('unis').value + "&username={{user.usr.username}}";
+
+			var req = new XMLHttpRequest();
+			req.open("PUT", "{% url 'projectlab:update_university' %}", true);
+			req.setRequestHeader('X-CSRFToken', csrftoken);
+			req.onreadystatechange = function () {
+
+				if (this.readyState == 4 && this.status == 200) {
+
+					window.location.replace(this.responseText);
+
+				} else if (this.readyState == 4 && this.status == 500) {
+
+					alert(this.responseText);
+
+				}
+
+			};
+			req.send(data);
+
+		}
+
+	});
+
+</script>
 </html>

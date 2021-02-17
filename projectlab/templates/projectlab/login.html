@@ -67,7 +67,7 @@
 									<input type="text" name="lastName" class="form-control" placeholder="Surname">
 								</div>
 								<div class="form-group">
-				                    <input id="datepicker" name="dob" type="text" class="form-control" placeholder="Date of Birth" readonly />
+				                    <input id="datepicker" name="dob" type="text" class="form-control" placeholder="Date of Birth (Click for calendar)" readonly />
 				                </div>
 				                <div class="form-group">
 				                    <input name="email" type="text" class="form-control" placeholder="Email (ending in .ac.uk)" />
@@ -161,7 +161,7 @@
 			data.append("signup_password", document.getElementsByName('signup_password')[0].value);
 
 			var req = new XMLHttpRequest();
-			req.open("POST", "{% url 'projectlab:verify_sign_up' %}")
+			req.open("POST", "{% url 'projectlab:verify_sign_up' %}");
 			req.setRequestHeader('X-CSRFToken', csrftoken);
 			req.onreadystatechange = function () {
 
