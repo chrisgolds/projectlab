@@ -7,21 +7,19 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
-
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" />
 </head>
 <body>
 	<div class="container">
+		{% include "projectlab/navbar.html" %}
 		<div class="row">
 			<div class="col-md-5">
 				{% for project in user.project_set.all %}
-				<div onclick="alert('{{ project.name }}')">
+				<div onclick="window.location.href = '{% url 'projectlab:view_project' acc=user.usr.username proj_id=project.id %}'">
 					<h2>{{ project.name }}</h2>
 					<p><i class="far fa-calendar-alt"></i> Due {{ project.deadline }}</p>
 					<p><i class="far fa-user"></i> {{ project.members.count }} member(s)</p>
 					<p><i class="far fa-edit"></i> {{ project.workspace_set.all.count }} workspace(s)</p>
-					{% if project.members.all.0.usr.username == user.usr.username %}
+					{% if project.lead == user.usr.username %}
 					<strong><i class="fas fa-star"></i> You are the project lead</strong>
 					{% endif %}
 				</div>

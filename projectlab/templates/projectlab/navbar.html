@@ -1,0 +1,8 @@
+<nav class="navbar navbar-expand-lg navbar-light justify-content-between" style="background-color: #ffffff; height: 80px;">
+  <a class="navbar-brand mb-0 h1" href="{% url 'projectlab:home' acc=user.usr.username %}">ProjectLab</a>
+  <form action="{% url 'projectlab:logout_user' %}">
+    <input class="btn btn-outline-danger" type="submit" value="Logout">
+</form>
+</nav>
+<br>
+<br>

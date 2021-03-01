@@ -5,6 +5,7 @@ from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 import os
@@ -38,6 +39,10 @@ def verify_login(request):
 				auth_login(request, user)
 				return HttpResponseRedirect(reverse('projectlab:home', args=(account.usr.username,)))
 
+
+def logout_user(request):
+	auth_logout(request)
+	return HttpResponseRedirect(reverse('projectlab:login'))
 
 def verify_sign_up(request):
 	if request.method == "POST":
@@ -138,7 +143,6 @@ def create_project(request, acc):
 
 def init_project(request):
 	if request.method == "POST":
-		# TODO - Create project and workspaces
 		proj_users = request.POST['users_arr'].split(",")
 		new_proj = Project()
 		new_proj.name = request.POST['project_name']
@@ -162,3 +166,19 @@ def init_project(request):
 
 		return HttpResponse(reverse('projectlab:home', args=(request.POST["users_arr"].split(",")[0],)))
 
+
+@login_required
+def view_project(request, acc, proj_id):
+	if acc == request.user.username:
+		#TODO - Display project details on a project view; display error if user attempts to access a project they are not part of
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			workspaces = proj.workspace_set.all()
+			return render(request, 'projectlab/project.html', {'user' : user,
+				'project' : proj,
+				'workspaces' : workspaces})
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
