@@ -23,15 +23,15 @@
 			</div>
 			<div class="col-md-6">
 				<div class="form-group">
-					<select class="custom-select" id="unis">
+					<select class="custom-select" id="my_workspaces">
 						{% for workspace in workspaces %}
 						{% if user.usr.username == workspace.user %}
-						<option value="{{ workspace.name }}">{{ workspace.name }}</option>
+						<option value="{{ workspace.id }}">{{ workspace.name }}</option>
 						{% endif %}
 						{% endfor %}
 					</select>
 				</div>
-				<button class="btn btn-success">View workspace page</button>
+				<button onclick="goToWorkspace(document.getElementById('my_workspaces').value)" class="btn btn-success">View workspace page</button>
 			</div>
 			<div class="col-md-6">
 				<h2>Other workspaces</h2>
@@ -47,4 +47,15 @@
 		</div>
 	</div>
 </body>
+<script type="text/javascript">
+	
+	function goToWorkspace(this_workspace_id) {
+
+		var url = "{% url 'projectlab:view_workspace' acc=user.usr.username proj_id=project.id  workspace_id=0 %}".replace('0', this_workspace_id);
+
+		window.location.href = url;
+
+	}
+
+</script>
 </html>

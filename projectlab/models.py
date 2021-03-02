@@ -16,6 +16,8 @@ class Workspace(models.Model):
 	project = models.ForeignKey(Project, on_delete=models.CASCADE)
 	name = models.CharField(max_length=200)
 	user = models.CharField(max_length=200)
+	date_created = models.DateTimeField()
+	timestamp = models.DateTimeField()
 	file_path = models.CharField(max_length=200)
 	next_workplace_id = models.IntegerField()
 	last_workplace_id = models.IntegerField()

@@ -170,7 +170,6 @@ def init_project(request):
 @login_required
 def view_project(request, acc, proj_id):
 	if acc == request.user.username:
-		#TODO - Display project details on a project view; display error if user attempts to access a project they are not part of
 		try:
 			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
 			proj = user.project_set.get(id = proj_id)
@@ -178,6 +177,22 @@ def view_project(request, acc, proj_id):
 			return render(request, 'projectlab/project.html', {'user' : user,
 				'project' : proj,
 				'workspaces' : workspaces})
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+@login_required
+def view_workspace(request, acc, proj_id, workspace_id):
+	if acc == request.user.username:
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			workspace = proj.workspace_set.get(id = workspace_id)
+			return render(request, 'projectlab/workspace.html', {'user' : user,
+				'project' : proj,
+				'workspace' : workspace})
 		except ObjectDoesNotExist:
 			return render(request, 'projectlab/403.html', {'user' : user})
 	else:
