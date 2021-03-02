@@ -155,14 +155,16 @@ def init_project(request):
 			new_proj.save()
 
 		for new_proj_user in new_proj.members.all():
-			Workspace(
+			ws = Workspace(
 				project = new_proj,
 				name = new_proj_user.usr.first_name + " - Main Workspace",
 				user = new_proj_user.usr.username,
-				file_path = "",
+				file_path = new_proj.id + "/",
 				next_workplace_id = -1,
 				last_workplace_id = -1
 			).save()
+			ws.file_path = ws.file_path + str(ws.id) + "/"
+			ws.save()
 
 		return HttpResponse(reverse('projectlab:home', args=(request.POST["users_arr"].split(",")[0],)))
 
