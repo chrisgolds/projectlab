@@ -195,6 +195,8 @@ def view_workspace(request, acc, proj_id, workspace_id):
 			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
 			proj = user.project_set.get(id = proj_id)
 			workspace = proj.workspace_set.get(id = workspace_id)
+			if not workspace.current:
+				return render(request, 'projectlab/403.html', {'user' : user})
 			fs = FileSystemStorage()
 			files = fs.listdir(workspace.file_path)
 			return render(request, 'projectlab/workspace.html', {'user' : user,
@@ -264,4 +266,51 @@ def init_workspace(request):
 		ws.file_path += str(ws.id) + "/"
 		ws.save()
 
-		return HttpResponse(reverse('projectlab:home', args=(request.POST["username"],)))
+		return HttpResponse(reverse('projectlab:view_workspace', args=(request.POST["username"],int(request.POST['project_id']),ws.id,)))
+
+
+def save_workspace(request):
+	if request.method == "POST":
+		ws_old = Workspace.objects.get(id=int(request.POST['last_workspace_id']))
+		ws_old.current = False
+		ws_old.save()
+
+		ws = Workspace()
+		ws.project = Project.objects.get(id = int(request.POST['project_id']))
+		ws.name = request.POST['workspace_name']
+		ws.user = request.POST['username']
+		ws.date_created = timezone.now()
+		ws.timestamp = timezone.now()
+		ws.file_path = request.POST['project_id'] + "/"
+		ws.next_workplace_id = -1
+		ws.last_workplace_id = ws_old.id
+		ws.save()
+
+		ws.file_path += str(ws.id) + "/"
+		ws.save()
+
+		return HttpResponse(reverse('projectlab:view_workspace', args=(request.POST["username"],int(request.POST['project_id']),ws.id,)))
+
+
+@login_required
+def workspace_history(request, acc, proj_id, workspace_id):
+	if acc == request.user.username:
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			workspace = proj.workspace_set.get(id = workspace_id)
+			if not workspace.current:
+				return render(request, 'projectlab/403.html', {'user' : user})
+			history = []
+			id_current = workspace.last_workplace_id
+			while id_current != -1:
+				history.append(Workspace.objects.get(id=id_current))
+				id_current = Workspace.objects.get(id=id_current).last_workplace_id
+			return render(request, 'projectlab/workspace_history.html', {'user' : user,
+				'project' : proj,
+				'workspace' : workspace,
+				'history' : history})
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))

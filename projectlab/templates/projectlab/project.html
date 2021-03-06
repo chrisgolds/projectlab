@@ -26,7 +26,7 @@
 				<div class="form-group">
 					<select class="custom-select" id="my_workspaces">
 						{% for workspace in project.workspace_set.all %}
-						{% if user.usr.username == workspace.user %}
+						{% if user.usr.username == workspace.user and workspace.current == True %}
 						<option value="{{ workspace.id }}">{{ workspace.name }}</option>
 						{% endif %}
 						{% endfor %}
@@ -38,7 +38,7 @@
 			<div class="col-md-6">
 				<h2>Other workspaces</h2>
 				{% for workspace in project.workspace_set.all %}
-				{% if not user.usr.username == workspace.user %}
+				{% if not user.usr.username == workspace.user and workspace.current == True %}
 				<div>
 					<a href="{% url 'projectlab:view_workspace' acc=user.usr.username proj_id=project.id  workspace_id=workspace.id %}">{{ workspace.name }}</a>
 					<p><i class="far fa-user"></i> {{ workspace.user }}</p>

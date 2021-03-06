@@ -17,5 +17,7 @@ urlpatterns = [
     path('<str:acc>/project/<int:proj_id>/workspace/<int:workspace_id>/', views.view_workspace, name='view_workspace'),
     path('upload_file/<str:acc>/<int:proj_id>/<int:workspace_id>', views.upload_file, name='upload_file'),
     path('<str:acc>/project/<int:proj_id>/create_workspace/', views.create_workspace, name='create_workspace'),
-    path('init_workspace/', views.init_workspace, name='init_workspace')
+    path('init_workspace/', views.init_workspace, name='init_workspace'),
+    path('save_workspace/', views.save_workspace, name='save_workspace'),
+    path('<str:acc>/project/<int:proj_id>/workspace/<int:workspace_id>/history', views.workspace_history, name='workspace_history')
 ]

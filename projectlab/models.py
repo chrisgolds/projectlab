@@ -19,5 +19,6 @@ class Workspace(models.Model):
 	date_created = models.DateTimeField()
 	timestamp = models.DateTimeField()
 	file_path = models.CharField(max_length=200)
+	current = models.BooleanField(default=True)
 	next_workplace_id = models.IntegerField()
 	last_workplace_id = models.IntegerField()
