@@ -2,7 +2,6 @@
 <html>
 <head>
 	<title>{{ project.name }} - {{ workspace.name }}</title>
-	<title>{{ project.name }}</title>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
@@ -13,8 +12,82 @@
 	<div class="container">
 		{% include "projectlab/navbar.html" %}
 		<div class="row">
-			
+			<div class="col-md-12">
+				<h1>{{ workspace.name }}</h1>
+				<a href="{% url 'projectlab:view_project' acc=user.usr.username proj_id=project.id %}"><p>{{ project.name }}</p></a>
+				<p><i class="far fa-user"></i> {{ workspace.user }} - Last modified {{ workspace.timestamp }}</p>
+				<br>
+			</div>
+			<div class="col-md-7">
+				{% if user.usr.username == workspace.user %}
+				<button class="btn btn-success" onclick="document.getElementById('upload_dialog').style.display = 'block';"><i class="fas fa-file-upload"></i></button>
+				<div id="upload_dialog" style="display: none">
+					<form method="post" enctype="multipart/form-data" action="{% url 'projectlab:upload_file' acc=user.usr.username proj_id=project.id  workspace_id=workspace.id %}">
+						{% csrf_token %}
+						<input type="file" name="uploaded_file">
+						<br>
+						<button class="btn btn-primary" type="submit">Upload</button>
+					</form>
+				</div>
+				<br>
+				<br>
+				{% endif %}
+				<div id="file_list">
+					{% for file in files %}
+					<div>
+						{% if ".pdf" in file %}
+						<i class="far fa-file-pdf"></i>
+						{% elif ".doc" in file or ".docx" in file %}
+						<i class="far fa-file-word"></i>
+						{% elif ".xls" in file or ".xlsm" in file or ".xlsx" in file %}
+						<i class="far fa-file-excel"></i>
+						{% elif ".ppt" in file or ".pptx" in file %}
+						<i class="far fa-file-powerpoint"></i>
+						{% elif ".txt" in file %}
+						<i class="far fa-file-alt"></i>
+						{% elif ".aspx" in file or ".asp" in file or ".css" in file or ".html" in file or ".java" in file or ".js" in file or ".json" in file or ".php" in file or ".py" in file or ".xml" in file or ".c" in file or ".cpp" in file or ".cs" in file or ".R" in file %}
+						<i class="far fa-file-code"></i>
+						{% elif ".mp3" in file or ".wav" in file %}
+						<i class="far fa-file-audio"></i>
+						{% elif ".zip" in file %}
+						<i class="far fa-file-archive"></i>
+						{% elif ".jpg" in file or ".jpeg" in file or ".png" in file %}
+						<i class="far fa-file-image"></i>
+						{% elif ".avi" in file or ".mov" in file or ".mp4" in file or ".mpg" in file or ".mpeg" in file or ".wmv" in file %}
+						<i class="far fa-file-video"></i>
+						{% else %}
+						<i class="far fa-file"></i>
+						{% endif %}
+						<p style="display: inline;">{{ file }}</p>
+
+						<a class="text-right" href="{{ location|add:'/'|add:workspace.file_path|add:file }}" download><i class="far fa-arrow-alt-circle-down"></i></a>
+						<hr>
+					</div>
+					{% empty %}
+					<h2>No files</h2>
+					{% endfor %}
+				</div>
+			</div>
 		</div>
 	</div>
 </body>
+<script type="text/javascript">
+
+	document.getElementsByName('uploaded_file')[0].addEventListener('change', function (event) {
+
+		for (var i = 0; i < document.getElementById('file_list').children.length; i++) {
+
+			console.log(document.getElementsByName('uploaded_file')[0].files);
+
+			if (document.getElementById('file_list').children[i].getElementsByTagName('P')[0].innerHTML == document.getElementsByName('uploaded_file')[0].files[0].name) {
+
+				alert("A file with the name " + document.getElementsByName('uploaded_file')[0].files[0].name + " exists in this worksapce. Are you happy to overwrite this file?");
+
+			}
+
+		}
+
+	});
+
+</script>
 </html>

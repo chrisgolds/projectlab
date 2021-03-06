@@ -18,7 +18,6 @@
 		<div class="row">
 			<div class="col-md-6">
 				<h1>Create new project</h1>
-			<!-- <form action="{% url 'projectlab:verify_login' %}"> -->
 				<form id="create_proj_form" method="post">
 					{% csrf_token %}
 					<div class="form-group">
@@ -190,7 +189,7 @@
 
 		} else {
 
-			alert("Error creating project - Please enter a project name and specify a deadline.")
+			alert("Error creating project - Please enter a project name and specify a deadline.");
 
 		}
 

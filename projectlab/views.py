@@ -3,11 +3,13 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.core.files.storage import FileSystemStorage
 from django.contrib.auth import authenticate
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
+from django.utils import timezone
 import os
 import json
 import re
@@ -155,18 +157,21 @@ def init_project(request):
 			new_proj.save()
 
 		for new_proj_user in new_proj.members.all():
-			ws = Workspace(
-				project = new_proj,
-				name = new_proj_user.usr.first_name + " - Main Workspace",
-				user = new_proj_user.usr.username,
-				file_path = new_proj.id + "/",
-				next_workplace_id = -1,
-				last_workplace_id = -1
-			).save()
-			ws.file_path = ws.file_path + str(ws.id) + "/"
+			ws = Workspace()
+			ws.project = new_proj
+			ws.name = new_proj_user.usr.first_name + " - Main Workspace"
+			ws.user = new_proj_user.usr.username
+			ws.date_created = timezone.now()
+			ws.timestamp = timezone.now()
+			ws.file_path = str(new_proj.id) + "/"
+			ws.next_workplace_id = -1
+			ws.last_workplace_id = -1
 			ws.save()
 
-		return HttpResponse(reverse('projectlab:home', args=(request.POST["users_arr"].split(",")[0],)))
+			ws.file_path += str(ws.id) + "/"
+			ws.save()
+
+		return HttpResponse(reverse('projectlab:home', args=(request.POST["username"],)))
 
 
 @login_required
@@ -175,10 +180,8 @@ def view_project(request, acc, proj_id):
 		try:
 			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
 			proj = user.project_set.get(id = proj_id)
-			workspaces = proj.workspace_set.all()
 			return render(request, 'projectlab/project.html', {'user' : user,
-				'project' : proj,
-				'workspaces' : workspaces})
+				'project' : proj})
 		except ObjectDoesNotExist:
 			return render(request, 'projectlab/403.html', {'user' : user})
 	else:
@@ -192,10 +195,73 @@ def view_workspace(request, acc, proj_id, workspace_id):
 			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
 			proj = user.project_set.get(id = proj_id)
 			workspace = proj.workspace_set.get(id = workspace_id)
+			fs = FileSystemStorage()
+			files = fs.listdir(workspace.file_path)
 			return render(request, 'projectlab/workspace.html', {'user' : user,
 				'project' : proj,
-				'workspace' : workspace})
+				'workspace' : workspace,
+				'files' : files[1],
+				'location' : fs.base_url})
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+		except FileNotFoundError:
+			return render(request, 'projectlab/workspace.html', {'user' : user,
+				'project' : proj,
+				'workspace' : workspace,
+				'files' : []})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+@login_required
+def upload_file(request, acc, proj_id, workspace_id):
+	if acc == request.user.username:
+		if request.method == 'POST' and request.FILES:
+			try:
+				user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+				proj = user.project_set.get(id = proj_id)
+				workspace = proj.workspace_set.get(id = workspace_id)
+				fs = FileSystemStorage()
+				if fs.exists(workspace.file_path + request.FILES["uploaded_file"].name):
+					fs.delete(workspace.file_path + request.FILES["uploaded_file"].name)
+				fs.save(workspace.file_path + request.FILES["uploaded_file"].name, request.FILES["uploaded_file"])
+				workspace.timestamp = timezone.now()
+				workspace.save()
+				return HttpResponseRedirect(reverse('projectlab:view_workspace', args=(acc,proj_id,workspace_id,)))
+			except ObjectDoesNotExist:
+				return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+@login_required
+def create_workspace(request, acc, proj_id):
+	if acc == request.user.username:
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			return render(request, 'projectlab/create_workspace.html', {'user' : user,
+				'project' : proj})
 		except ObjectDoesNotExist:
 			return render(request, 'projectlab/403.html', {'user' : user})
 	else:
 		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+def init_workspace(request):
+	if request.method == "POST":
+		ws = Workspace()
+		ws.project = Project.objects.get(id = int(request.POST['project_id']))
+		ws.name = request.POST['workspace_name']
+		ws.user = request.POST['username']
+		ws.date_created = timezone.now()
+		ws.timestamp = timezone.now()
+		ws.file_path = request.POST['project_id'] + "/"
+		ws.next_workplace_id = -1
+		ws.last_workplace_id = -1
+		ws.save()
+
+		ws.file_path += str(ws.id) + "/"
+		ws.save()
+
+		return HttpResponse(reverse('projectlab:home', args=(request.POST["username"],)))

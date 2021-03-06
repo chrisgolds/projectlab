@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{ project.name }} - Create new workspace</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+</head>
+<body>
+	<div class="container">
+		{% include "projectlab/navbar.html" %}
+		<div class="row">
+			<div class="col-md-6">
+				<h1>Create new workspace</h1>
+				<a href="{% url 'projectlab:view_project' acc=user.usr.username proj_id=project.id %}"><p>{{ project.name }}</p></a>
+				<p><i class="far fa-user"></i> {{ user.usr.username }}</p>
+				<form id="create_workspace_form" method="post">
+					{% csrf_token %}
+					<div class="form-group">
+						<input type="text" name="workspace_name" class="form-control" placeholder="Enter workspace name">
+					</div>
+					<br>
+					<input type="submit" class="btn btn-success" value="Create">
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	
+	function getCookie(name) {
+	    let cookieValue = null;
+	    if (document.cookie && document.cookie !== '') {
+	        const cookies = document.cookie.split(';');
+	        for (let i = 0; i < cookies.length; i++) {
+	            const cookie = cookies[i].trim();
+	            // Does this cookie string begin with the name we want?
+	            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+	                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+	                break;
+	            }
+	        }
+	    }
+	    return cookieValue;
+	}
+
+	const csrftoken = getCookie('csrftoken');
+
+	document.getElementById('create_workspace_form').addEventListener('submit', function (event) {
+
+		event.preventDefault();
+
+		if (document.getElementsByName('workspace_name')[0].value != "") {
+
+			if (confirm("Confirm workspace name:\n" + document.getElementsByName('workspace_name')[0].value)) {
+
+				var data = new FormData();
+				data.append("project_id", "{{ project.id }}");
+				data.append("workspace_name", document.getElementsByName('workspace_name')[0].value);
+				data.append("username", "{{ user.usr.username }}");
+
+				var req = new XMLHttpRequest();
+				req.open("POST", "{% url 'projectlab:init_workspace' %}");
+				req.setRequestHeader('X-CSRFToken', csrftoken);
+				req.onreadystatechange = function () {
+
+					if (this.readyState == 4 && this.status == 200) {
+
+						window.location.replace(this.responseText);
+
+					}
+
+				};
+				req.send(data);
+
+			}
+
+		} else {
+
+			alert("Error creating workspace - Please enter a workspace name.");
+
+		}
+
+	});
+
+</script>
+</html>
