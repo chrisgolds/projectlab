@@ -302,14 +302,17 @@ def workspace_history(request, acc, proj_id, workspace_id):
 			if not workspace.current:
 				return render(request, 'projectlab/403.html', {'user' : user})
 			history = []
+			fs = FileSystemStorage()
 			id_current = workspace.last_workplace_id
 			while id_current != -1:
-				history.append(Workspace.objects.get(id=id_current))
+				ws_current = Workspace.objects.get(id=id_current)
+				history.append([ws_current, fs.listdir(ws_current.file_path)[1]])
 				id_current = Workspace.objects.get(id=id_current).last_workplace_id
 			return render(request, 'projectlab/workspace_history.html', {'user' : user,
 				'project' : proj,
 				'workspace' : workspace,
-				'history' : history})
+				'history' : history,
+				'location' : fs.base_url})
 		except ObjectDoesNotExist:
 			return render(request, 'projectlab/403.html', {'user' : user})
 	else:
