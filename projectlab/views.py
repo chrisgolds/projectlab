@@ -317,3 +317,122 @@ def workspace_history(request, acc, proj_id, workspace_id):
 			return render(request, 'projectlab/403.html', {'user' : user})
 	else:
 		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+@login_required
+def edit_project(request, acc, proj_id):
+	if acc == request.user.username:
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			if user.usr.username != proj.lead:
+				return render(request, 'projectlab/403.html', {'user' : user})
+			return render(request, 'projectlab/edit_project.html', {'user' : user,
+				'project' : proj,
+				'deadline' : datetime.datetime.strptime(str(proj.deadline), "%Y-%m-%d").strftime("%d/%m/%Y")})
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+def update_project(request):
+	if request.method == "PUT":
+		try:
+			res = QueryDict(request.body)
+			proj = Project.objects.get(id = res.get("project_id"))
+			if proj.name != res.get("project_name"):
+				proj.name = res.get("project_name")
+				proj.save()
+			if proj.deadline != datetime.datetime.strptime(res.get("deadline"), "%d/%m/%Y").strftime("%Y-%m-%d"):
+				proj.deadline = datetime.datetime.strptime(res.get("deadline"), "%d/%m/%Y").strftime("%Y-%m-%d")
+				proj.save()
+			return HttpResponse(reverse('projectlab:view_project', args=(res.get("username"),proj.id,)))
+		except:
+			return HttpResponseServerError("Error updating project. Please try again.")
+
+
+@login_required
+def add_members(request, acc, proj_id):
+	if acc == request.user.username:
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			if user.usr.username != proj.lead:
+				return render(request, 'projectlab/403.html', {'user' : user})
+			usernames = ""
+			for username in proj.members.all():
+				usernames += username.usr.username + ","
+			return render(request, 'projectlab/add_members.html', {'user' : user,
+				'project' : proj,
+				'usernames' : usernames})
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+def add_mem_to_proj(request):
+	if request.method == "PUT":
+		try:
+			res = QueryDict(request.body)
+			proj = Project.objects.get(id = res.get("project_id"))
+			for member in res.get("users_arr").split(","):
+				new_proj_user = Member.objects.get(usr = User.objects.get(username = member))
+
+				proj.members.add(new_proj_user)
+				proj.save()
+
+				ws = Workspace()
+				ws.project = proj
+				ws.name = new_proj_user.usr.first_name + " - Main Workspace"
+				ws.user = new_proj_user.usr.username
+				ws.date_created = timezone.now()
+				ws.timestamp = timezone.now()
+				ws.file_path = str(proj.id) + "/"
+				ws.next_workplace_id = -1
+				ws.last_workplace_id = -1
+				ws.save()
+
+				ws.file_path += str(ws.id) + "/"
+				ws.save()
+			return HttpResponse(reverse('projectlab:view_project', args=(res.get("username"),proj.id,)))
+		except:
+			return HttpResponseServerError("Error updating project. Please try again.")
+
+
+@login_required
+def remove_members(request, acc, proj_id):
+	if acc == request.user.username:
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			if user.usr.username != proj.lead:
+				return render(request, 'projectlab/403.html', {'user' : user})
+			return render(request, 'projectlab/remove_members.html', {'user' : user,
+				'project' : proj})
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
+
+def rm_mem_from_proj(request):
+	if request.method == "PUT":
+		try:
+			res = QueryDict(request.body)
+			proj = Project.objects.get(id = res.get("project_id"))
+			for member in res.get("users_arr").split(","):
+				rm_proj_user_ws = proj.workspace_set.filter(user=member)
+				for ws in rm_proj_user_ws:
+					fs = FileSystemStorage()
+					if fs.exists(ws.file_path):
+						for file in fs.listdir(ws.file_path)[1]:
+							fs.delete(ws.file_path + file)
+					ws.delete()
+
+				proj.members.remove(Member.objects.get(usr = User.objects.get(username = member)))
+			return HttpResponse(reverse('projectlab:view_project', args=(res.get("username"),proj.id,)))
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+		except:
+			return HttpResponseServerError("Error updating project. Please try again.")
