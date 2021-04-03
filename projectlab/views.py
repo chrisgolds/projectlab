@@ -18,7 +18,7 @@ import re
 import datetime
 import universities
 
-from .models import Member, Workspace, Project, Message
+from .models import Member, Workspace, Project, Message, Chatroom, ChatroomMessage
 
 def login(request):
 	return render(request, 'projectlab/login.html')
@@ -155,6 +155,9 @@ def init_project(request):
 		new_proj.lead = request.POST['username']
 		new_proj.deadline = datetime.datetime.strptime(request.POST['deadline'], "%d/%m/%Y").strftime("%Y-%m-%d")
 		new_proj.save()
+
+		chatroom = Chatroom(project = new_proj)
+		chatroom.save()
 
 		for proj_username in proj_users:
 			new_proj.members.add(Member.objects.get(usr = User.objects.get(username = proj_username)))
@@ -481,3 +484,45 @@ def post_message(request):
 		msg.save()
 
 		return HttpResponse(reverse('projectlab:view_workspace', args=(request.POST["username"],ws.project.id,ws.id,)))
+
+
+@login_required
+def chat(request, acc, proj_id):
+	if acc == request.user.username:
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			return render(request, 'projectlab/chat.html', {'user' : user,
+				'project' : proj,
+				'chatroom' : proj.chatroom.chatroommessage_set.all().order_by('-timestamp')})
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+def check_chatroom(request):
+	if request.method == "GET":
+		return JsonResponse({'len' : len(Chatroom.objects.get(project = Project.objects.get(id = request.GET["project"])).chatroommessage_set.all())})
+
+
+def get_chatroom(request):
+	if request.method == "GET":
+		chatroom = Chatroom.objects.get(project = Project.objects.get(id = request.GET["project"]))
+		res = {'data' : []}
+		for chat in chatroom.chatroommessage_set.all().order_by('-timestamp'):
+			res['data'].append({'user' : chat.user, 'timestamp' : chat.timestamp.strftime("%d-%m-%Y %H:%M"), 'body' : chat.body})
+		return JsonResponse(res)
+
+
+def post_chatroom(request):
+	if request.method == "POST":
+		room = Chatroom.objects.get(project = Project.objects.get(id = request.POST["project"]))
+		chat_msg = ChatroomMessage()
+		chat_msg.chatroom = room
+		chat_msg.user = request.POST["username"]
+		chat_msg.timestamp = timezone.now()
+		chat_msg.body = request.POST["body"]
+		chat_msg.save()
+
+		return JsonResponse({'status' : 200})

@@ -27,5 +27,9 @@ urlpatterns = [
     path('add_mem_to_proj/', views.add_mem_to_proj, name='add_mem_to_proj'),
     path('<str:acc>/project/<int:proj_id>/remove_members/', views.remove_members, name='remove_members'),
     path('rm_mem_from_proj/', views.rm_mem_from_proj, name='rm_mem_from_proj'),
-    path('post_message/', views.post_message, name='post_message')
+    path('post_message/', views.post_message, name='post_message'),
+    path('<str:acc>/project/<int:proj_id>/chat/', views.chat, name='chat'),
+    path('check_chatroom/', views.check_chatroom, name='check_chatroom'),
+    path('get_chatroom/', views.get_chatroom, name='get_chatroom'),
+    path('post_chatroom/', views.post_chatroom, name='post_chatroom')
 ]

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{ project.name }} - Chat</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+</head>
+<body>
+	<div class="container">
+		{% include "projectlab/navbar.html" %}
+		<div class="row">
+			<div class="col-md-12">
+				<h1>Chat</h1>
+				<a href="{% url 'projectlab:view_project' acc=user.usr.username proj_id=project.id %}"><p>{{ project.name }}</p></a>
+				<p><i class="far fa-user"></i> {{ user.usr.username }}</p>
+				<p>Newer messages will appear at the top</p>
+				<div class="chat_box">
+					<div id="chat_window" style="height: 250px; width: 100; overflow-y: scroll;">
+						{% for chat in chatroom %}
+						<div>
+							<strong>{{ chat.user }}</strong>
+							<br>
+							<p>{{ chat.body }}</p>
+							<br>
+							<small style="float: right;">{{ chat.timestamp|date:'d-m-Y H:i' }}</small>
+							<hr>
+						</div>
+						{% empty %}
+						{% endfor %}
+					</div>
+					<br>
+					<textarea id="chatMessage" class="form-control" rows="3"></textarea>
+					<br>
+					<button onclick="postChat()" type="button" class="btn btn-success">Send</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+
+	function getCookie(name) {
+	    let cookieValue = null;
+	    if (document.cookie && document.cookie !== '') {
+	        const cookies = document.cookie.split(';');
+	        for (let i = 0; i < cookies.length; i++) {
+	            const cookie = cookies[i].trim();
+	            // Does this cookie string begin with the name we want?
+	            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+	                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+	                break;
+	            }
+	        }
+	    }
+	    return cookieValue;
+	}
+
+	const csrftoken = getCookie('csrftoken');
+
+	function getChatroomUpdate() {
+
+		var req = new XMLHttpRequest();
+		req.open("GET",
+			"{% url 'projectlab:get_chatroom' %}?project={{ project.id }}",
+			true);
+		req.setRequestHeader('X-CSRFToken', csrftoken);
+		req.onreadystatechange = function () {
+
+			var res = JSON.parse(this.responseText);
+
+			if (res.data.length > 0) {
+
+				document.getElementById('chat_window').innerHTML = "";
+				for (var i = 0; i < res.data.length; i++) {
+					document.getElementById('chat_window').innerHTML += "<div><strong>" +
+					res.data[i].user +
+					"</strong><br><p>" +
+					res.data[i].body +
+					"</p><br><small style=\"float: right;\">" +
+					res.data[i].timestamp +
+					"</small><hr></div>";
+
+				}
+
+			}
+
+		}
+		req.send();
+
+	}
+
+	function checkChatroomUpdate() {
+
+		var req = new XMLHttpRequest();
+		req.open("GET",
+			"{% url 'projectlab:check_chatroom' %}?project={{ project.id }}",
+			true);
+		req.setRequestHeader('X-CSRFToken', csrftoken);
+		req.onreadystatechange = function () {
+
+			if (this.readyState == 4 && this.status == 200) {
+
+				var res = JSON.parse(this.responseText);
+
+				console.log(res.len);
+				console.log(document.getElementById('chat_window').childElementCount);
+
+				if (res.len > document.getElementById('chat_window').childElementCount) {
+
+					getChatroomUpdate();
+
+				} else {
+
+					console.log("No update");
+
+				}
+
+			}
+
+		};
+		req.send();
+
+	}
+
+	function postChat() {
+
+		if (document.getElementById('chatMessage').value != "") {
+
+	    	var data = new FormData();
+	    	data.append("project", "{{ project.id }}");
+	    	data.append("username", "{{ user.usr.username }}");
+	    	data.append("body", document.getElementById('chatMessage').value);
+
+	    	var req = new XMLHttpRequest();
+	    	req.open("POST", "{% url 'projectlab:post_chatroom' %}");
+	    	req.setRequestHeader('X-CSRFToken', csrftoken);
+	    	req.onreadystatechange = function () {
+
+	        	if (this.readyState == 4 && this.status == 200) {
+
+	          		var res = JSON.parse(this.responseText);
+
+	          		if (res.status == 200) {
+
+	          			getChatroomUpdate();
+
+	          		}
+
+	        	}
+
+	      	};
+	      	req.send(data);
+
+	    } else {
+
+	      	alert("You must enter a message before posting");
+
+	    }
+
+	}
+	
+	setInterval(function() {
+		
+		// console.log("Send update");
+		checkChatroomUpdate();
+
+	}, 5000)
+
+</script>

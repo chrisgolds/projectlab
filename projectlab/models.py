@@ -29,3 +29,12 @@ class Message(models.Model):
 	user = models.CharField(max_length=200)
 	timestamp = models.DateTimeField()
 	body = models.TextField()
+
+class Chatroom(models.Model):
+	project = models.OneToOneField(Project, on_delete=models.CASCADE)
+
+class ChatroomMessage(models.Model):
+	chatroom = models.ForeignKey(Chatroom, on_delete=models.CASCADE)
+	user = models.CharField(max_length=200)
+	timestamp = models.DateTimeField()
+	body = models.TextField()
