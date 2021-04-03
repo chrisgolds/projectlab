@@ -16,9 +16,16 @@ class Workspace(models.Model):
 	project = models.ForeignKey(Project, on_delete=models.CASCADE)
 	name = models.CharField(max_length=200)
 	user = models.CharField(max_length=200)
+	save_desc = models.TextField()
 	date_created = models.DateTimeField()
 	timestamp = models.DateTimeField()
 	file_path = models.CharField(max_length=200)
 	current = models.BooleanField(default=True)
 	next_workplace_id = models.IntegerField()
 	last_workplace_id = models.IntegerField()
+
+class Message(models.Model):
+	workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
+	user = models.CharField(max_length=200)
+	timestamp = models.DateTimeField()
+	body = models.TextField()

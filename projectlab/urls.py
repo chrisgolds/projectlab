@@ -16,6 +16,7 @@ urlpatterns = [
     path('<str:acc>/project/<int:proj_id>/', views.view_project, name='view_project'),
     path('<str:acc>/project/<int:proj_id>/workspace/<int:workspace_id>/', views.view_workspace, name='view_workspace'),
     path('upload_file/<str:acc>/<int:proj_id>/<int:workspace_id>/', views.upload_file, name='upload_file'),
+    path('delete_file/', views.delete_file, name='delete_file'),
     path('<str:acc>/project/<int:proj_id>/create_workspace/', views.create_workspace, name='create_workspace'),
     path('init_workspace/', views.init_workspace, name='init_workspace'),
     path('save_workspace/', views.save_workspace, name='save_workspace'),
@@ -25,5 +26,6 @@ urlpatterns = [
     path('<str:acc>/project/<int:proj_id>/add_members/', views.add_members, name='add_members'),
     path('add_mem_to_proj/', views.add_mem_to_proj, name='add_mem_to_proj'),
     path('<str:acc>/project/<int:proj_id>/remove_members/', views.remove_members, name='remove_members'),
-    path('rm_mem_from_proj/', views.rm_mem_from_proj, name='rm_mem_from_proj')
+    path('rm_mem_from_proj/', views.rm_mem_from_proj, name='rm_mem_from_proj'),
+    path('post_message/', views.post_message, name='post_message')
 ]

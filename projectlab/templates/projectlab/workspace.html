@@ -21,10 +21,11 @@
 			<div class="col-md-7">
 				{% if user.usr.username == workspace.user %}
 				{% if not files %}
-				<button onclick="saveWorkspace()" class="btn btn-primary" disabled>Save</button>
+				<button data-toggle="modal" data-target="#saveWorkspace" class="btn btn-primary" disabled>Save</button>
 				{% else %}
-				<button onclick="saveWorkspace()" class="btn btn-primary">Save</button>
+				<button data-toggle="modal" data-target="#saveWorkspace" class="btn btn-primary">Save</button>
 				{% endif %}
+				{% include "projectlab/save_modal.html" %}
 				<button onclick="window.location.href = '{% url 'projectlab:workspace_history' acc=user.usr.username proj_id=project.id workspace_id=workspace.id %}'" class="btn btn-outline-success">View history</button>
 				<br>
 				<br>
@@ -34,7 +35,7 @@
 						{% csrf_token %}
 						<input type="file" name="uploaded_file">
 						<br>
-						<button class="btn btn-primary" type="submit">Upload</button>
+						<button id="upload_file_btn" class="btn btn-primary" type="submit" disabled>Upload</button>
 					</form>
 				</div>
 				<br>
@@ -69,12 +70,33 @@
 						<p style="display: inline;">{{ file }}</p>
 
 						<a class="text-right" href="{{ location|add:'/'|add:workspace.file_path|add:file }}" download><i class="far fa-arrow-alt-circle-down"></i></a>
+
+						{% if user.usr.username == workspace.user %}
+						<a href="#" onclick="deleteFile('{{file}}')" style="float: right;"><i class="fas fa-times"></i></a>
+						{% endif %}
 						<hr>
 					</div>
 					{% empty %}
 					<h2>No files</h2>
 					{% endfor %}
 				</div>
+			</div>
+			<div class="col-md-5">
+				<h4>Messages</h4>
+				<button class="btn btn-success" data-toggle="modal" data-target="#newMessage">New</button>
+				{% include "projectlab/message_modal.html" %}
+				<br>
+				{% for message in messages %}
+				<div>
+					<strong><i class="far fa-user"></i> {{ message.user }}</strong>
+					<br>
+					<strong>{{ message.timestamp }}</strong>
+					<br>
+					<p>{{ message.body }}</p>
+					<hr>
+				</div>
+				{% empty %}
+				{% endfor %}
 			</div>
 		</div>
 	</div>
@@ -99,39 +121,11 @@
 
 	const csrftoken = getCookie('csrftoken');
 
-	function saveWorkspace() {
-
-		if (confirm("You are about to save the state of this workspace and create a new copy. You will be able to see previous versions of this workspace in the history page. THIS ACTION CANNOT BE UNDONE. Proceed?")) {
-
-			var data = new FormData();
-			data.append("project_id", "{{ project.id }}");
-			data.append("workspace_name", "{{ workspace.name }}");
-			data.append("username", "{{ user.usr.username }}");
-			data.append("last_workspace_id", "{{ workspace.id }}");
-
-			var req = new XMLHttpRequest();
-			req.open("POST", "{% url 'projectlab:save_workspace' %}");
-			req.setRequestHeader('X-CSRFToken', csrftoken);
-			req.onreadystatechange = function () {
-
-				if (this.readyState == 4 && this.status == 200) {
-
-					window.location.replace(this.responseText);
-
-				}
-
-			};
-			req.send(data);
-
-		}
-
-	}
-
 	document.getElementsByName('uploaded_file')[0].addEventListener('change', function (event) {
 
-		for (var i = 0; i < document.getElementById('file_list').children.length; i++) {
+		document.getElementById('upload_file_btn').disabled = false;
 
-			console.log(document.getElementsByName('uploaded_file')[0].files);
+		for (var i = 0; i < document.getElementById('file_list').children.length; i++) {
 
 			if (document.getElementById('file_list').children[i].getElementsByTagName('P')[0].innerHTML == document.getElementsByName('uploaded_file')[0].files[0].name) {
 
@@ -142,6 +136,34 @@
 		}
 
 	});
+
+	function deleteFile(file) {
+
+		if (confirm("Confirm deletion of " + file + ". This action CANNOT BE UNDONE")) {
+
+			var data = "username={{ user.usr.username }}&workspace_id={{ workspace.id }}&file=" + file;
+
+			var req = new XMLHttpRequest();
+			req.open("PUT", "{% url 'projectlab:delete_file' %}");
+			req.setRequestHeader('X-CSRFToken', csrftoken);
+			req.onreadystatechange = function () {
+
+				if (this.readyState == 4 && this.status == 200) {
+
+					window.location.replace(this.responseText);
+
+				} else if (this.readyState == 4 && this.status == 500) {
+
+					alert(this.responseText);
+
+				}
+
+			};
+			req.send(data);
+
+		}
+
+	}
 
 </script>
 </html>

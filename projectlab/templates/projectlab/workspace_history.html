@@ -20,13 +20,13 @@
 			</div>
 			<div class="col-md-7">
 				<div>
-					<h2>{{ workspace.date_created }} (Current)</h2>
+					<h2>Current</h2>
 					<p>Last modified {{ workspace.timestamp }}</p>
 					<hr>
 				</div>
 				{% for record in history %}
 				<div>
-					<h2><i class="fas fa-history"></i> {{ record.0.date_created }}</h2>
+					<h4><i class="fas fa-history"></i> {{ record.0.save_desc }}</h4>
 					<p>Last modified {{ record.0.timestamp }}</p>
 					<button class="btn btn-primary" data-toggle="modal" data-target="#{{ record.0.id }}">View files</button>
 					{% include "projectlab/files_modal.html" %}

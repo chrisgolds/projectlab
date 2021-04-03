@@ -2,6 +2,7 @@ from django.http import QueryDict, HttpResponse, HttpResponseServerError, HttpRe
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render
 from django.urls import reverse
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.storage import FileSystemStorage
 from django.contrib.auth import authenticate
@@ -11,12 +12,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.utils import timezone
 import os
+import shutil
 import json
 import re
 import datetime
 import universities
 
-from .models import Member, Workspace, Project
+from .models import Member, Workspace, Project, Message
 
 def login(request):
 	return render(request, 'projectlab/login.html')
@@ -115,9 +117,11 @@ def home(request, acc):
 			for uni in unis:
 				uni_names.append(uni.name)
 			return render(request, 'projectlab/home.html', {'user' : user,
+				'all_projects' : user.project_set.all().order_by('deadline'),
 				'uni_names' : uni_names})
 		else:
-			return render(request, 'projectlab/home.html', {'user' : user})
+			return render(request, 'projectlab/home.html', {'user' : user,
+				'all_projects' : user.project_set.all().order_by('deadline')})
 	else:
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
@@ -161,6 +165,7 @@ def init_project(request):
 			ws.project = new_proj
 			ws.name = new_proj_user.usr.first_name + " - Main Workspace"
 			ws.user = new_proj_user.usr.username
+			ws.save_desc = ""
 			ws.date_created = timezone.now()
 			ws.timestamp = timezone.now()
 			ws.file_path = str(new_proj.id) + "/"
@@ -202,6 +207,7 @@ def view_workspace(request, acc, proj_id, workspace_id):
 			return render(request, 'projectlab/workspace.html', {'user' : user,
 				'project' : proj,
 				'workspace' : workspace,
+				'messages' : workspace.message_set.all().order_by('-timestamp'),
 				'files' : files[1],
 				'location' : fs.base_url})
 		except ObjectDoesNotExist:
@@ -210,6 +216,7 @@ def view_workspace(request, acc, proj_id, workspace_id):
 			return render(request, 'projectlab/workspace.html', {'user' : user,
 				'project' : proj,
 				'workspace' : workspace,
+				'messages' : workspace.message_set.all().order_by('-timestamp'),
 				'files' : []})
 	else:
 		return HttpResponseRedirect(reverse('projectlab:login'))
@@ -236,6 +243,18 @@ def upload_file(request, acc, proj_id, workspace_id):
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
 
+def delete_file(request):
+	if request.method == "PUT":
+		try:
+			res = QueryDict(request.body)
+			ws = Workspace.objects.get(id = res.get("workspace_id"))
+			fs = FileSystemStorage()
+			fs.delete(ws.file_path + res.get("file"))
+			return HttpResponse(reverse('projectlab:view_workspace', args=(res.get("username"),ws.project.id,ws.id,)))
+		except:
+			return HttpResponseServerError("Error updating project. Please try again.")
+
+
 @login_required
 def create_workspace(request, acc, proj_id):
 	if acc == request.user.username:
@@ -256,6 +275,7 @@ def init_workspace(request):
 		ws.project = Project.objects.get(id = int(request.POST['project_id']))
 		ws.name = request.POST['workspace_name']
 		ws.user = request.POST['username']
+		ws.save_desc = ""
 		ws.date_created = timezone.now()
 		ws.timestamp = timezone.now()
 		ws.file_path = request.POST['project_id'] + "/"
@@ -273,6 +293,7 @@ def save_workspace(request):
 	if request.method == "POST":
 		ws_old = Workspace.objects.get(id=int(request.POST['last_workspace_id']))
 		ws_old.current = False
+		ws_old.save_desc = request.POST['save_desc']
 		ws_old.save()
 
 		ws = Workspace()
@@ -285,9 +306,18 @@ def save_workspace(request):
 		ws.next_workplace_id = -1
 		ws.last_workplace_id = ws_old.id
 		ws.save()
+		for message in ws_old.message_set.all():
+			message.workspace = ws
+			message.save()
 
 		ws.file_path += str(ws.id) + "/"
 		ws.save()
+
+		fs = FileSystemStorage()
+		os.mkdir(os.path.join(settings.MEDIA_ROOT,ws.file_path))
+		if fs.exists(ws_old.file_path):
+			for file in fs.listdir(ws_old.file_path)[1]:
+				shutil.copyfile(os.path.join(settings.MEDIA_ROOT,ws_old.file_path,file),os.path.join(settings.MEDIA_ROOT,ws.file_path,file))
 
 		return HttpResponse(reverse('projectlab:view_workspace', args=(request.POST["username"],int(request.POST['project_id']),ws.id,)))
 
@@ -387,6 +417,7 @@ def add_mem_to_proj(request):
 				ws.project = proj
 				ws.name = new_proj_user.usr.first_name + " - Main Workspace"
 				ws.user = new_proj_user.usr.username
+				ws.save_desc = ""
 				ws.date_created = timezone.now()
 				ws.timestamp = timezone.now()
 				ws.file_path = str(proj.id) + "/"
@@ -416,6 +447,7 @@ def remove_members(request, acc, proj_id):
 	else:
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
+
 def rm_mem_from_proj(request):
 	if request.method == "PUT":
 		try:
@@ -436,3 +468,16 @@ def rm_mem_from_proj(request):
 			return render(request, 'projectlab/403.html', {'user' : user})
 		except:
 			return HttpResponseServerError("Error updating project. Please try again.")
+
+
+def post_message(request):
+	if request.method == "POST":
+		msg = Message()
+		ws = Workspace.objects.get(id = int(request.POST['workspace_id']))
+		msg.workspace = ws
+		msg.user = request.POST['username']
+		msg.timestamp = timezone.now()
+		msg.body = request.POST['body']
+		msg.save()
+
+		return HttpResponse(reverse('projectlab:view_workspace', args=(request.POST["username"],ws.project.id,ws.id,)))
