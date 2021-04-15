@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{ project.name }} - Zoom meetings</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+
+	<!-- Datepicker JS and CSS -->
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" />
+</head>
+<body>
+	<div class="container">
+		{% include "projectlab/navbar.html" %}
+		<div class="row">
+			<div class="col-md-6">
+				<h1>Zoom meetings</h1>
+				<a href="{% url 'projectlab:view_project' acc=user.usr.username proj_id=project.id %}"><p>{{ project.name }}</p></a>
+				<p><i class="far fa-user"></i> {{ user.usr.username }}</p>
+				<br>
+				{% for meeting in meetings %}
+				{% if meeting.start_time.date >= today.date %}
+				<h2>{{ meeting.topic }}</h2>
+				<p>Meeting ID: {{ meeting.meeting_id }}</p>
+				<p>Passcode: {{ meeting.meeting_passcode }}</p>
+				<p>{{ meeting.start_time }} - {{ meeting.duration_min }} minutes</p>
+				<a href="{{ meeting.join_url }}" target="_blank">Link to join</a>
+				<hr>
+				{% endif %}
+				{% empty %}
+				<h2>No meetings</h2>
+				{% endfor %}
+			</div>
+			<div class="col-md-6">
+				<h2>Create new meeting</h2>
+				<p>To create a Zoom meeting via ProjectLab, you will need to assign JWT credentials to the Zoom account you wish to use.
+				<a href="https://marketplace.zoom.us/develop/create" target="_blank">Follow this link to create a JWT API and secret key on your Zoom account.</a> Upon creation of a JWT app, your keys will be available under "App Credentials"</p>
+				<form id="create_zoom_form" method="post">
+					{% csrf_token %}
+					<div class="form-group">
+						<input type="text" name="api_key" class="form-control" placeholder="Enter API key">
+					</div>
+					<div class="form-group">
+						<input type="password" name="secret_key" class="form-control" placeholder="Enter secret key">
+					</div>
+					<br>
+					<div class="form-group">
+						<input type="text" name="topic" class="form-control" placeholder="Topic">
+					</div>
+					<div class="form-group">
+		                <input id="datepicker" name="start_date" type="text" class="form-control" placeholder="Meeting date (Click for calendar)" readonly />
+		            </div>
+		            <p>Start time and duration <i>(UTC - Be mindful of your current timezone and UTC offset)</i></p>
+		            <div class="form-group" style="display: inline-block;">
+					  	<select class="form-control" name="start_hour">
+						    <option>00</option>
+						    <option>01</option>
+						    <option>02</option>
+						    <option>03</option>
+						    <option>04</option>
+						    <option>05</option>
+						    <option>06</option>
+						    <option>07</option>
+						    <option>08</option>
+						    <option>09</option>
+						    <option>10</option>
+						    <option>11</option>
+						    <option>12</option>
+						    <option>13</option>
+						    <option>14</option>
+						    <option>15</option>
+						    <option>16</option>
+						    <option>17</option>
+						    <option>18</option>
+						    <option>19</option>
+						    <option>20</option>
+						    <option>21</option>
+						    <option>22</option>
+						    <option>23</option>
+						    <option>24</option>
+						</select>
+					</div>
+					<div class="form-group" style="display: inline-block;">
+						<select class="form-control" name="start_min">
+							<option>00</option>
+						    <option>15</option>
+						    <option>30</option>
+						    <option>45</option>
+						</select>
+					</div>
+					<p>Duration (minutes)</p>
+					<div class="form-group" style="display: inline-block;">
+						<input type="number" name="duration" class="form-control" min="1" max="999" value="60">
+					</div>
+					<input type="submit" class="btn btn-success" value="Create">
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	
+	$("#datepicker").datepicker({format: 'dd/mm/yyyy'});
+
+	function getCookie(name) {
+	    let cookieValue = null;
+	    if (document.cookie && document.cookie !== '') {
+	        const cookies = document.cookie.split(';');
+	        for (let i = 0; i < cookies.length; i++) {
+	            const cookie = cookies[i].trim();
+	            // Does this cookie string begin with the name we want?
+	            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+	                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+	                break;
+	            }
+	        }
+	    }
+	    return cookieValue;
+	}
+
+	const csrftoken = getCookie('csrftoken');
+
+	document.getElementById('create_zoom_form').addEventListener('submit', function (event) {
+
+		event.preventDefault();
+
+		//alert("Create!");
+
+		if (document.getElementsByName('api_key')[0].value != "" &&
+			document.getElementsByName('secret_key')[0].value != "" &&
+			document.getElementsByName('topic')[0].value != "" &&
+			document.getElementsByName('start_date')[0].value != "" &&
+			document.getElementsByName('start_hour')[0].value != "" &&
+			document.getElementsByName('start_min')[0].value != "" &&
+			document.getElementsByName('duration')[0].value != "") {
+
+			date_split = document.getElementsByName('start_date')[0].value.split("/");
+			if (new Date(parseInt(date_split[2]),
+				parseInt(date_split[1]) - 1,
+				parseInt(date_split[0]),
+				parseInt(document.getElementsByName('start_hour')[0].value),
+				parseInt(document.getElementsByName('start_min')[0].value),0,0).getTime() < new Date().getTime()) {
+
+				alert("The date you've set cannot be in the past or today.");
+
+			} else {
+
+				if (confirm("Confirm Zoom meeting details:\n" +
+					document.getElementsByName('topic')[0].value +
+					"\n" +
+					document.getElementsByName('start_date')[0].value +
+					"\n" +
+					document.getElementsByName('start_hour')[0].value + ":" +
+					document.getElementsByName('start_min')[0].value +
+					"\n" +
+					document.getElementsByName('duration')[0].value + " minutes.")) {
+
+					var data = new FormData();
+					data.append("username", "{{ user.usr.username }}");
+					data.append("project", "{{ project.id }}");
+					data.append("api_key", document.getElementsByName('api_key')[0].value);
+					data.append("secret_key", document.getElementsByName('secret_key')[0].value);
+					data.append("topic", document.getElementsByName('topic')[0].value);
+					data.append("start_date", document.getElementsByName('start_date')[0].value);
+					data.append("start_time", (document.getElementsByName('start_hour')[0].value + ":" + document.getElementsByName('start_min')[0].value));
+					data.append("duration", document.getElementsByName('duration')[0].value);
+
+					var req = new XMLHttpRequest();
+					req.open("POST", "{% url 'projectlab:create_meeting' %}");
+					req.setRequestHeader('X-CSRFToken', csrftoken);
+					req.onreadystatechange = function () {
+
+						if (this.readyState == 4 && this.status == 200) {
+
+							window.location.replace(this.responseText);
+
+						} else if (this.readyState == 4 && this.status == 500) {
+
+							alert(this.responseText);
+
+						}
+
+					};
+					req.send(data);
+
+				}
+
+			}
+
+		} else {
+
+
+
+		}
+
+	});
+
+</script>
+</html>

@@ -38,3 +38,12 @@ class ChatroomMessage(models.Model):
 	user = models.CharField(max_length=200)
 	timestamp = models.DateTimeField()
 	body = models.TextField()
+
+class ZoomMeeting(models.Model):
+	project = models.ForeignKey(Project, on_delete=models.CASCADE)
+	topic = models.CharField(max_length=200)
+	meeting_id = models.IntegerField()
+	meeting_passcode = models.CharField(max_length=200)
+	start_time = models.DateTimeField()
+	duration_min = models.IntegerField()
+	join_url = models.CharField(max_length=200)

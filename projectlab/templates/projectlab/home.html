@@ -17,7 +17,11 @@
 				{% for project in all_projects %}
 				<div>
 					<a href="{% url 'projectlab:view_project' acc=user.usr.username proj_id=project.id %}"><h2>{{ project.name }}</h2></a>
+					{% if project.deadline.day <= today.day and project.deadline.month <= today.month and project.deadline.year <= today.year %}
+					<p style="color: red;"><i class="far fa-calendar-alt"></i> Due {{ project.deadline }} - Deadline passed</p>
+					{% else %}
 					<p><i class="far fa-calendar-alt"></i> Due {{ project.deadline }}</p>
+					{% endif %}
 					<p><i class="far fa-user"></i> {{ project.members.count }} member(s)</p>
 					{% if project.lead == user.usr.username %}
 					<strong><i class="fas fa-star"></i> You are the project lead</strong>

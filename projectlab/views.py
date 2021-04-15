@@ -11,14 +11,18 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.utils import timezone
+import jwt
+import requests
 import os
 import shutil
 import json
 import re
 import datetime
+import time
+import dateutil.parser
 import universities
 
-from .models import Member, Workspace, Project, Message, Chatroom, ChatroomMessage
+from .models import Member, Workspace, Project, Message, Chatroom, ChatroomMessage, ZoomMeeting
 
 def login(request):
 	return render(request, 'projectlab/login.html')
@@ -118,10 +122,12 @@ def home(request, acc):
 				uni_names.append(uni.name)
 			return render(request, 'projectlab/home.html', {'user' : user,
 				'all_projects' : user.project_set.all().order_by('deadline'),
+				'today' : datetime.datetime.now(),
 				'uni_names' : uni_names})
 		else:
 			return render(request, 'projectlab/home.html', {'user' : user,
-				'all_projects' : user.project_set.all().order_by('deadline')})
+				'all_projects' : user.project_set.all().order_by('deadline'),
+				'today' : datetime.datetime.now()})
 	else:
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
@@ -526,3 +532,59 @@ def post_chatroom(request):
 		chat_msg.save()
 
 		return JsonResponse({'status' : 200})
+
+
+@login_required
+def zoom_meetings(request, acc, proj_id):
+	if acc == request.user.username:
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			return render(request, 'projectlab/zoom_meetings.html', {'user' : user,
+				'project' : proj,
+				'meetings' : proj.zoommeeting_set.all().order_by('start_time'),
+				'today' : datetime.datetime.now()})
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+def create_meeting(request):
+	if request.method == "POST":
+		header = {"alg": "HS256", "typ": "JWT"}
+		payload = {"iss": request.POST["api_key"], "exp": int(time.time() + 3600)}
+		token = jwt.encode(payload, request.POST["secret_key"], algorithm="HS256", headers=header).decode("utf-8")
+		
+		headers = {
+			'content-type': "application/json",
+			"Authorization": ("Bearer " + str(token))
+		}
+		url = "https://api.zoom.us/v2/users/me/meetings"
+
+		data = {
+			"topic" : request.POST["topic"],
+			"type" : 2,
+			"start_time" : datetime.datetime.strptime(request.POST['start_date'], "%d/%m/%Y").strftime("%Y-%m-%d") + "T" + request.POST['start_time'] + ":00",
+			"duration" : int(request.POST["duration"]),
+			"timezone" : "GMT"
+		}
+
+		res = requests.post(url, data=json.dumps(data), headers=headers)
+		if res.status_code >= 201 and res.status_code < 300:
+			json_res = json.loads(res.text)
+
+			zm = ZoomMeeting()
+			zm.project = Project.objects.get(id = request.POST["project"])
+			zm.topic = json_res['topic']
+			zm.meeting_id = int(json_res['id'])
+			zm.meeting_passcode = json_res['password']
+			zm.start_time = dateutil.parser.parse(json_res['start_time'])
+			zm.duration_min = json_res['duration']
+			zm.join_url = json_res['join_url']
+
+			zm.save()
+
+			return HttpResponse(reverse('projectlab:zoom_meetings', args=(request.POST["username"],request.POST["project"],)))
+		else:
+			return HttpResponseServerError("Error creating Zoom meeting. Ensure you have used the correct API and secret keys and try again.")

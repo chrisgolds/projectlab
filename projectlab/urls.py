@@ -31,5 +31,7 @@ urlpatterns = [
     path('<str:acc>/project/<int:proj_id>/chat/', views.chat, name='chat'),
     path('check_chatroom/', views.check_chatroom, name='check_chatroom'),
     path('get_chatroom/', views.get_chatroom, name='get_chatroom'),
-    path('post_chatroom/', views.post_chatroom, name='post_chatroom')
+    path('post_chatroom/', views.post_chatroom, name='post_chatroom'),
+    path('<str:acc>/project/<int:proj_id>/zoom_meetings/', views.zoom_meetings, name='zoom_meetings'),
+    path('create_meeting/', views.create_meeting, name='create_meeting')
 ]
