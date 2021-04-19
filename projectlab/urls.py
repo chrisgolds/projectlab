@@ -14,6 +14,7 @@ urlpatterns = [
     path('<str:acc>/create_project/', views.create_project, name='create_project'),
     path('init_project/', views.init_project, name='init_project'),
     path('<str:acc>/project/<int:proj_id>/', views.view_project, name='view_project'),
+    path('<str:acc>/project/<int:proj_id>/log/', views.log, name='log'),
     path('<str:acc>/project/<int:proj_id>/workspace/<int:workspace_id>/', views.view_workspace, name='view_workspace'),
     path('upload_file/<str:acc>/<int:proj_id>/<int:workspace_id>/', views.upload_file, name='upload_file'),
     path('delete_file/', views.delete_file, name='delete_file'),
@@ -33,5 +34,7 @@ urlpatterns = [
     path('get_chatroom/', views.get_chatroom, name='get_chatroom'),
     path('post_chatroom/', views.post_chatroom, name='post_chatroom'),
     path('<str:acc>/project/<int:proj_id>/zoom_meetings/', views.zoom_meetings, name='zoom_meetings'),
-    path('create_meeting/', views.create_meeting, name='create_meeting')
+    path('create_meeting/', views.create_meeting, name='create_meeting'),
+    path('<str:acc>/project/<int:proj_id>/dashboard/', views.dashboard, name='dashboard'),
+    path('get_user_chart/', views.get_user_chart, name='get_user_chart')
 ]

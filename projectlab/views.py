@@ -11,6 +11,10 @@ from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.utils import timezone
+from django.db.models import Q
+from io import BytesIO
+import base64
+import matplotlib.pyplot as plt
 import jwt
 import requests
 import os
@@ -22,7 +26,7 @@ import time
 import dateutil.parser
 import universities
 
-from .models import Member, Workspace, Project, Message, Chatroom, ChatroomMessage, ZoomMeeting
+from .models import Member, Workspace, Project, Message, Chatroom, ChatroomMessage, ZoomMeeting, Log, LogMessage
 
 def login(request):
 	return render(request, 'projectlab/login.html')
@@ -165,9 +169,19 @@ def init_project(request):
 		chatroom = Chatroom(project = new_proj)
 		chatroom.save()
 
+		log = Log(project = new_proj)
+		log.save() 
+
 		for proj_username in proj_users:
 			new_proj.members.add(Member.objects.get(usr = User.objects.get(username = proj_username)))
 			new_proj.save()
+			LogMessage(
+				log = log,
+				log_type = "add_member",
+				user = request.POST['username'],
+				timestamp = timezone.now(),
+				body = request.POST['username'] + " added " + proj_username + " to the project"
+			).save()
 
 		for new_proj_user in new_proj.members.all():
 			ws = Workspace()
@@ -184,6 +198,14 @@ def init_project(request):
 
 			ws.file_path += str(ws.id) + "/"
 			ws.save()
+			LogMessage(
+				log = log,
+				log_type = "create_workspace",
+				user = request.POST['username'],
+				timestamp = timezone.now(),
+				body = request.POST['username'] + " created workspace " + ws.name + " for " + ws.user
+			).save()
+
 
 		return HttpResponse(reverse('projectlab:home', args=(request.POST["username"],)))
 
@@ -195,7 +217,25 @@ def view_project(request, acc, proj_id):
 			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
 			proj = user.project_set.get(id = proj_id)
 			return render(request, 'projectlab/project.html', {'user' : user,
-				'project' : proj})
+				'project' : proj,
+				'log' : proj.log.logmessage_set.all().order_by('-timestamp')[:10]})
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+@login_required
+def log(request, acc, proj_id):
+	if acc == request.user.username:
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			if user.usr.username != proj.lead:
+				return render(request, 'projectlab/403.html', {'user' : user})
+			return render(request, 'projectlab/log.html', {'user' : user,
+				'project' : proj,
+				'log' : proj.log.logmessage_set.all().order_by('-timestamp')})
 		except ObjectDoesNotExist:
 			return render(request, 'projectlab/403.html', {'user' : user})
 	else:
@@ -245,6 +285,15 @@ def upload_file(request, acc, proj_id, workspace_id):
 				fs.save(workspace.file_path + request.FILES["uploaded_file"].name, request.FILES["uploaded_file"])
 				workspace.timestamp = timezone.now()
 				workspace.save()
+
+				LogMessage(
+					log = proj.log,
+					log_type = "upload_file",
+					user = user.usr.username,
+					timestamp = timezone.now(),
+					body = user.usr.username + " uploaded " + request.FILES["uploaded_file"].name + " to workspace " + workspace.name
+				).save()
+
 				return HttpResponseRedirect(reverse('projectlab:view_workspace', args=(acc,proj_id,workspace_id,)))
 			except ObjectDoesNotExist:
 				return render(request, 'projectlab/403.html', {'user' : user})
@@ -259,6 +308,15 @@ def delete_file(request):
 			ws = Workspace.objects.get(id = res.get("workspace_id"))
 			fs = FileSystemStorage()
 			fs.delete(ws.file_path + res.get("file"))
+
+			LogMessage(
+				log = ws.project.log,
+				log_type = "delete_file",
+				user = res.get("username"),
+				timestamp = timezone.now(),
+				body = res.get("username") + " deleted " + res.get("file") + " from workspace " + ws.name
+			).save()
+
 			return HttpResponse(reverse('projectlab:view_workspace', args=(res.get("username"),ws.project.id,ws.id,)))
 		except:
 			return HttpResponseServerError("Error updating project. Please try again.")
@@ -294,6 +352,13 @@ def init_workspace(request):
 
 		ws.file_path += str(ws.id) + "/"
 		ws.save()
+		LogMessage(
+			log = ws.project.log,
+			log_type = "create_workspace",
+			user = request.POST['username'],
+			timestamp = timezone.now(),
+			body = request.POST['username'] + " created workspace " + ws.name
+		).save()
 
 		return HttpResponse(reverse('projectlab:view_workspace', args=(request.POST["username"],int(request.POST['project_id']),ws.id,)))
 
@@ -327,6 +392,14 @@ def save_workspace(request):
 		if fs.exists(ws_old.file_path):
 			for file in fs.listdir(ws_old.file_path)[1]:
 				shutil.copyfile(os.path.join(settings.MEDIA_ROOT,ws_old.file_path,file),os.path.join(settings.MEDIA_ROOT,ws.file_path,file))
+
+		LogMessage(
+			log = ws.project.log,
+			log_type = "save_workspace",
+			user = request.POST['username'],
+			timestamp = timezone.now(),
+			body = request.POST['username'] + " saved workspace " + ws.name
+		).save()
 
 		return HttpResponse(reverse('projectlab:view_workspace', args=(request.POST["username"],int(request.POST['project_id']),ws.id,)))
 
@@ -436,6 +509,13 @@ def add_mem_to_proj(request):
 
 				ws.file_path += str(ws.id) + "/"
 				ws.save()
+				LogMessage(
+					log = proj.log,
+					log_type = "add_member",
+					user = res.get("username"),
+					timestamp = timezone.now(),
+					body = res.get("username") + " added " + member + " to the project"
+				).save()
 			return HttpResponse(reverse('projectlab:view_project', args=(res.get("username"),proj.id,)))
 		except:
 			return HttpResponseServerError("Error updating project. Please try again.")
@@ -472,6 +552,13 @@ def rm_mem_from_proj(request):
 					ws.delete()
 
 				proj.members.remove(Member.objects.get(usr = User.objects.get(username = member)))
+				LogMessage(
+					log = proj.log,
+					log_type = "remove_member",
+					user = res.get("username"),
+					timestamp = timezone.now(),
+					body = res.get("username") + " removed " + member + " from the project"
+				).save()
 			return HttpResponse(reverse('projectlab:view_project', args=(res.get("username"),proj.id,)))
 		except ObjectDoesNotExist:
 			return render(request, 'projectlab/403.html', {'user' : user})
@@ -488,6 +575,14 @@ def post_message(request):
 		msg.timestamp = timezone.now()
 		msg.body = request.POST['body']
 		msg.save()
+
+		LogMessage(
+			log = ws.project.log,
+			log_type = "post_message",
+			user = request.POST['username'],
+			timestamp = timezone.now(),
+			body = request.POST['username'] + " posted a message to " + ws.name
+		).save()
 
 		return HttpResponse(reverse('projectlab:view_workspace', args=(request.POST["username"],ws.project.id,ws.id,)))
 
@@ -585,6 +680,149 @@ def create_meeting(request):
 
 			zm.save()
 
+			LogMessage(
+				log = zm.project.log,
+				log_type = "zoom_meeting",
+				user = request.POST['username'],
+				timestamp = timezone.now(),
+				body = request.POST['username'] + " created a Zoom meeting for " + str(zm.start_time)
+			).save()
+
 			return HttpResponse(reverse('projectlab:zoom_meetings', args=(request.POST["username"],request.POST["project"],)))
 		else:
 			return HttpResponseServerError("Error creating Zoom meeting. Ensure you have used the correct API and secret keys and try again.")
+
+
+@login_required
+def dashboard(request, acc, proj_id):
+	if acc == request.user.username:
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.user.username))
+			proj = user.project_set.get(id = proj_id)
+			if user.usr.username != proj.lead:
+				return render(request, 'projectlab/403.html', {'user' : user})
+
+			labels = []
+			sizes = []
+
+			for member in proj.members.all():
+				labels.append(member.usr.username)
+				sizes.append(len(proj.log.logmessage_set.filter(user=member.usr.username)))
+
+			plt.title(proj.name)
+			plt.pie(sizes, autopct='%1.2f%%')
+			plt.legend(labels, loc="lower center", bbox_to_anchor=(0.5, -0.3), ncol=3)
+			plt.tight_layout()
+			plt.text(0.95, 0.05, 'ProjectLab',fontsize=50,color='gray',ha='right',va='bottom',alpha=0.5)
+			plt.text(-1, -1.2, 'Generated ' + str(datetime.datetime.now().day) + "/" + str(datetime.datetime.now().month) + "/" + str(datetime.datetime.now().year),fontsize=7,color='black')
+			plt.axis('equal')
+
+			buff = BytesIO()
+			plt.savefig(buff, format='png')
+			buff.seek(0)
+			plot_img = buff.getvalue()
+			buff.close()
+
+			plt.close()
+
+			plot = base64.b64encode(plot_img)
+			plot = plot.decode('utf-8')
+
+
+			for member in proj.members.all():
+				date_count = {}
+				for log_message in proj.log.logmessage_set.filter(user=member.usr.username):
+					date = str(log_message.timestamp.day) + "/" + str(log_message.timestamp.month) + "/" + str(log_message.timestamp.year)
+					if date not in date_count:
+						date_count[date] = 0
+						date_count[date] += 1
+					else:
+						date_count[date] += 1
+				x_vals = list(date_count.keys())
+				y_vals = list(date_count.values())
+				plt.plot(x_vals, y_vals, marker="o")
+
+			plt.title(proj.name)
+			plt.legend(labels, loc="lower center", bbox_to_anchor=(0.5, -0.3), ncol=3)
+			plt.tight_layout()
+
+			buff = BytesIO()
+			plt.savefig(buff, format='png')
+			buff.seek(0)
+			plot_img = buff.getvalue()
+			buff.close()
+
+			plt.close()
+
+			plot_line = base64.b64encode(plot_img)
+			plot_line = plot_line.decode('utf-8')
+
+			return render(request, 'projectlab/dashboard.html', {'user' : user,
+	        	'project' : proj,
+	        	'plot' : plot,
+	        	'plot_line' : plot_line})
+
+
+		except ObjectDoesNotExist:
+			return render(request, 'projectlab/403.html', {'user' : user})
+	else:
+		return HttpResponseRedirect(reverse('projectlab:login'))
+
+
+def get_user_chart(request):
+	if request.method == "GET":
+		try:
+			user = Member.objects.get(usr = User.objects.get(username = request.GET["user"]))
+			proj = user.project_set.get(id = request.GET["project"])
+
+			labels = []
+			sizes = []
+
+			colors = [
+				"#a4a4f4",
+				"#1c1ce3",
+				"#80ffaa",
+				"#00cc44",
+				"#ff8566",
+				"#e62e00"
+			]
+
+			types = {
+				'create_workspace' : "Created workspace",
+				'upload_file' : "Uploaded file",
+				'delete_file' : "Deleted file",
+				'save_workspace' : "Saved workspace",
+				'post_message' : "Posted message to workspace",
+				'zoom_meeting' : "Created Zoom meeting"
+			}
+
+			for key, val in types.items():
+				labels.append(val)
+				sizes.append(len(proj.log.logmessage_set.filter(user=user.usr.username).filter(log_type=key)))
+
+			if not sizes:
+				return HttpResponseServerError("ERROR: Could not produce chart.")
+
+			plt.title(user.usr.username + " - " + proj.name)
+			plt.pie(sizes, autopct='%1.2f%%', colors=colors)
+			plt.legend(labels, loc="lower center", bbox_to_anchor=(0.5, -0.3), ncol=3)
+			plt.tight_layout()
+			plt.text(0.95, 0.05, 'ProjectLab',fontsize=50,color='gray',ha='right',va='bottom',alpha=0.5)
+			plt.text(-1, -1.2, 'Generated ' + str(datetime.datetime.now().day) + "/" + str(datetime.datetime.now().month) + "/" + str(datetime.datetime.now().year),fontsize=7,color='black')
+			plt.axis('equal')
+
+			buff = BytesIO()
+			plt.savefig(buff, format='png')
+			buff.seek(0)
+			plot_img = buff.getvalue()
+			buff.close()
+
+			plt.close()
+
+			plot = base64.b64encode(plot_img)
+			plot = plot.decode('utf-8')
+
+			return HttpResponse(plot)
+
+		except Exception:
+			return HttpResponseServerError("ERROR: Could not produce chart.")

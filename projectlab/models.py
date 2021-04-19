@@ -47,3 +47,13 @@ class ZoomMeeting(models.Model):
 	start_time = models.DateTimeField()
 	duration_min = models.IntegerField()
 	join_url = models.CharField(max_length=200)
+
+class Log(models.Model):
+	project = models.OneToOneField(Project, on_delete=models.CASCADE)
+
+class LogMessage(models.Model):
+	log = models.ForeignKey(Log, on_delete=models.CASCADE)
+	log_type = models.CharField(max_length=200)
+	user = models.CharField(max_length=200)
+	timestamp = models.DateTimeField()
+	body = models.TextField()

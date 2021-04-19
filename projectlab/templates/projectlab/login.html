@@ -149,6 +149,7 @@
 			document.getElementsByName('email')[0].value != "" &&
 			/.+@\w+\.\w+/.test(document.getElementsByName('email')[0].value) &&
 			document.getElementsByName('signup_username')[0].value != "" &&
+			!/\s/.test(document.getElementsByName('signup_username')[0].value) &&
 			document.getElementsByName('signup_password')[0].value != "" &&
 			document.getElementsByName('confirm_password')[0].value != "" &&
 			(document.getElementsByName('signup_password')[0].value == document.getElementsByName('confirm_password')[0].value)) {
@@ -182,7 +183,7 @@
 
 		} else {
 
-			alert("Error signing up - Please complete all fields, and ensure a valid email address is provided and that passwords match accordingly.")
+			alert("Error signing up - Please complete all fields, use a username with no spaces, ensure a valid email address is provided and that passwords match accordingly.")
 
 		}
 

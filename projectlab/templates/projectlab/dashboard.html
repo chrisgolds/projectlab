@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>{{ project.name }} - Dashboard</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
+</head>
+<body>
+	<div class="container">
+		{% include "projectlab/navbar.html" %}
+		<div class="row">
+			<div class="col-md-12">
+				<h1>Project Dashboard</h1>
+				<a href="{% url 'projectlab:view_project' acc=user.usr.username proj_id=project.id %}"><p>{{ project.name }}</p></a>
+				<p><i class="far fa-user"></i> {{ user.usr.username }}</p>
+			</div>
+			<div class="col-md-6">
+				<h2>Collaboration summary</h2>
+				<img src="data:image/png;base64,{{ plot|safe }}" style="width: 100%;">
+			</div>
+			<div class="col-md-6">
+				<h2>Collaboration by user</h2>
+				<div class="form-group">
+					<select class="custom-select" id="users">
+						{% for member in project.members.all %}
+						<option value="{{ member.usr.username }}">{{ member.usr.username }}</option>
+						{% endfor %}
+					</select>
+				</div>
+				<button onclick="getUserChart(document.getElementById('users').value)" class="btn btn-success">View chart</button>
+				<div id="user_chart"></div>
+			</div>
+			<div class="col-md-6">
+				<h2>Timeline</h2>
+				<img src="data:image/png;base64,{{ plot_line|safe }}" style="width: 100%;">
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+
+	function getCookie(name) {
+	    let cookieValue = null;
+	    if (document.cookie && document.cookie !== '') {
+	        const cookies = document.cookie.split(';');
+	        for (let i = 0; i < cookies.length; i++) {
+	            const cookie = cookies[i].trim();
+	            // Does this cookie string begin with the name we want?
+	            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+	                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+	                break;
+	            }
+	        }
+	    }
+	    return cookieValue;
+	}
+
+	const csrftoken = getCookie('csrftoken');
+	
+	function getUserChart(this_user) {
+
+		var req = new XMLHttpRequest();
+		req.open("GET",
+			"{% url 'projectlab:get_user_chart' %}?user=" + this_user + "&project={{ project.id }}",
+			true)
+		req.setRequestHeader('X-CSRFToken', csrftoken);
+		req.onreadystatechange = function () {
+
+			if (this.readyState == 4 && this.status == 200) {
+
+				//res = JSON.parse(this.responseText);
+				document.getElementById('user_chart').innerHTML = '<img src="data:image/png;base64,' + this.responseText + '" style="width: 100%;">'
+
+			}
+
+		}
+		req.send();
+
+	}
+
+</script>
+</html>
