@@ -26,7 +26,7 @@ SECRET_KEY = '*gt8zws*m1rcln-%apkf6tu_9&fk_(j6vbf)kba-+@z__^xrzw'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['.apps.okd.eecs.qmul.ac.uk']
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
