@@ -12,6 +12,12 @@ class Project(models.Model):
 	lead = models.CharField(max_length=200)
 	deadline = models.DateField()
 
+'''
+Workspaces will have their 'current' value set to True by default
+on the assumption that a new workspace becomes the active version after saving.
+'next_workplace_id' was not removed during development and is not used
+in the application's primary functionality
+'''
 class Workspace(models.Model):
 	project = models.ForeignKey(Project, on_delete=models.CASCADE)
 	name = models.CharField(max_length=200)

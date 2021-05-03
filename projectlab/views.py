@@ -28,10 +28,12 @@ import universities
 
 from .models import Member, Workspace, Project, Message, Chatroom, ChatroomMessage, ZoomMeeting, Log, LogMessage
 
+
 def login(request):
 	return render(request, 'projectlab/login.html')
 
 
+# Verify credentials and log the user in
 def verify_login(request):
 	try:
 		account = Member.objects.get(usr = User.objects.get(username = request.POST['username']))
@@ -56,6 +58,12 @@ def logout_user(request):
 	auth_logout(request)
 	return HttpResponseRedirect(reverse('projectlab:login'))
 
+
+'''
+More input validation, particularly checking if email belongs to a UK unviersity.
+API calls made by the 'universities' package assigns university to profile based on domain.
+If it cannot determine the university it will ask the user to select it from a dropdown on the home page.
+'''
 def verify_sign_up(request):
 	if request.method == "POST":
 		try:
@@ -115,6 +123,7 @@ def search_user(request):
 			})
 
 
+# Homepage lists user's projects by deadline in ascending order (earliest first)
 @login_required
 def home(request, acc):
 	if acc == request.user.username:
@@ -136,6 +145,7 @@ def home(request, acc):
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
 
+# Invoked when user selects uni from homepage should 'universities' be unable to determine the institution
 def update_university(request):
 	if request.method == "PUT":
 		try:
@@ -157,6 +167,12 @@ def create_project(request, acc):
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
 
+'''
+Function for creating a new project object.
+Chatroom and Log objects created and assigned to the project.
+Members added to project and log message created.
+Main worksapces created for each member.
+'''
 def init_project(request):
 	if request.method == "POST":
 		proj_users = request.POST['users_arr'].split(",")
@@ -271,6 +287,10 @@ def view_workspace(request, acc, proj_id, workspace_id):
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
 
+'''
+Determines file path of workspace and uploads file to that directory using FileSystemStorage.
+If file exists, current will be deleted and replaced with new version.
+'''
 @login_required
 def upload_file(request, acc, proj_id, workspace_id):
 	if acc == request.user.username:
@@ -301,6 +321,7 @@ def upload_file(request, acc, proj_id, workspace_id):
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
 
+# Deletes provided file in request from provided workspace
 def delete_file(request):
 	if request.method == "PUT":
 		try:
@@ -336,6 +357,7 @@ def create_workspace(request, acc, proj_id):
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
 
+# Function for creating new Workspace
 def init_workspace(request):
 	if request.method == "POST":
 		ws = Workspace()
@@ -363,6 +385,12 @@ def init_workspace(request):
 		return HttpResponse(reverse('projectlab:view_workspace', args=(request.POST["username"],int(request.POST['project_id']),ws.id,)))
 
 
+'''
+Function for saving an existing Workspace.
+Old workspace's 'current' status set to False, and provided save description assigned to 'save_desc'.
+New workspace created with same name, user and messages.
+Files from old workspace copied to file path of new one.
+'''
 def save_workspace(request):
 	if request.method == "POST":
 		ws_old = Workspace.objects.get(id=int(request.POST['last_workspace_id']))
@@ -484,6 +512,7 @@ def add_members(request, acc, proj_id):
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
 
+#Adding members creates a new main workspace for each one
 def add_mem_to_proj(request):
 	if request.method == "PUT":
 		try:
@@ -537,6 +566,7 @@ def remove_members(request, acc, proj_id):
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
 
+# Removing members deletes all associated workspaces and their files
 def rm_mem_from_proj(request):
 	if request.method == "PUT":
 		try:
@@ -645,6 +675,12 @@ def zoom_meetings(request, acc, proj_id):
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
 
+''' 
+Creates new Zoom meeting.
+Generates JWT token based on provided API key and secret key.
+Populates header and data appropriately before sending POST request to api.zoom.us.
+Response data assigned to a new Zoom meeting object.
+'''
 def create_meeting(request):
 	if request.method == "POST":
 		header = {"alg": "HS256", "typ": "JWT"}
@@ -693,6 +729,11 @@ def create_meeting(request):
 			return HttpResponseServerError("Error creating Zoom meeting. Ensure you have used the correct API and secret keys and try again.")
 
 
+'''
+Dashboard page creates plots for total collaboration summary and timeline of collaborations by each member.
+Plots generated using 'matplotlib'.
+Watermarks added to plots to preserve integrity.
+'''
 @login_required
 def dashboard(request, acc, proj_id):
 	if acc == request.user.username:
@@ -769,6 +810,7 @@ def dashboard(request, acc, proj_id):
 		return HttpResponseRedirect(reverse('projectlab:login'))
 
 
+# Retrieves summary of collaborations for provided user
 def get_user_chart(request):
 	if request.method == "GET":
 		try:
