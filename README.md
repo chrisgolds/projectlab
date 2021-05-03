@@ -61,3 +61,7 @@ python manage.py runserver 0.0.0.0:8000
 (And to access from other devices on the same network, go to <public_ip_address_of_machine>:8000/projectlab
 
 
+
+## Testing ##
+
+To view the memory testing scripts and logs created during development, pull the Git repository ```https://github.com/chrisgolds/projectlab_memory_test.git``` and view its README
