@@ -1,3 +1,11 @@
+'''
+ProjectLab's design follows a convention influenced by the official Django tutorial.
+"Writing your first Django app, part 1-4"
+https://docs.djangoproject.com/en/3.2/intro/tutorial01/
+https://docs.djangoproject.com/en/3.2/intro/tutorial02/
+https://docs.djangoproject.com/en/3.2/intro/tutorial03/
+https://docs.djangoproject.com/en/3.2/intro/tutorial04/
+'''
 from django.db import models
 from django.contrib.auth.models import User
 
