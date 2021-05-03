@@ -680,6 +680,7 @@ Creates new Zoom meeting.
 Generates JWT token based on provided API key and secret key.
 Populates header and data appropriately before sending POST request to api.zoom.us.
 Response data assigned to a new Zoom meeting object.
+Code sampled from https://jwt.io [accessed 03/05/21]
 '''
 def create_meeting(request):
 	if request.method == "POST":
@@ -733,6 +734,7 @@ def create_meeting(request):
 Dashboard page creates plots for total collaboration summary and timeline of collaborations by each member.
 Plots generated using 'matplotlib'.
 Watermarks added to plots to preserve integrity.
+Code sampled from https://matplotlib.org/stable/gallery/pie_and_polar_charts/pie_features.html [accessed 03/05/21]
 '''
 @login_required
 def dashboard(request, acc, proj_id):
