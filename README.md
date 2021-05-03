@@ -64,4 +64,4 @@ python manage.py runserver 0.0.0.0:8000
 
 ## Testing ##
 
-To view the memory testing scripts and logs created during development, pull the Git repository ```https://github.com/chrisgolds/projectlab_memory_test.git``` and view its README
+To view the memory testing scripts and logs created during development, clone the Git repository ```https://github.com/chrisgolds/projectlab_memory_test.git``` and view its README
