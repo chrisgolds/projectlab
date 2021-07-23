@@ -3,11 +3,7 @@
 Final year project assignment
 
 
-Christopher Goldsbrough - 170306575
-
-BSc Software Engineering for Business
-
-Queen Mary University of London
+http://chrisgolds96.pythonanywhere.com/projectlab
 
 
 This is a web application software written in and supported by Python Django.
